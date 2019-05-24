@@ -12,7 +12,11 @@
 #ifndef _BASETSD_H_
 typedef unsigned char  BYTE;
 typedef unsigned short WORD;
+#ifdef _WIN32
 typedef unsigned long  DWORD;
+#else
+typedef unsigned int   DWORD;
+#endif
 typedef unsigned char  UINT8;
 typedef unsigned short UINT16;
 typedef unsigned int  UINT32;

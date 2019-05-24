@@ -540,8 +540,9 @@ SCC_calc_stereo (SCC * scc, e_int16 buf[2]) {
           buf[0]+=b;
         else if(scc->ch_pan[i]==2) 
           buf[1]+=b;
-        else 
+        else {
           buf[0]+=b; buf[1]+=b;
+        }
       }
     }
   }
