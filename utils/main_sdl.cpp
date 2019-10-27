@@ -58,6 +58,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    mp.p->SetLoop(true);
+
     mp.p->Start();
 
 

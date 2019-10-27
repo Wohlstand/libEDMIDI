@@ -1,0 +1,152 @@
+// クラスの名前を変更してABIの衝突を回避する
+#define BW_MidiSequencer EmuDeMidiMidiSequencer
+// MIDIシーケンサークラスの実装を含める
+#include "sequencer/midi_sequencer_impl.hpp"
+
+#include "CSMFPlay.hpp"
+
+namespace dsa
+{
+
+/****************************************************
+ *           リアルタイムMIDI呼び出しプロキシ            *
+ ****************************************************/
+
+CMIDIModule &getModule(void *userdata, uint8_t channel)
+{
+    CSMFPlay *c = reinterpret_cast<CSMFPlay *>(userdata);
+    return c->m_module[(channel * 2) % c->m_mods];
+}
+
+CMIDIModule &getModule2(void *userdata, uint8_t channel)
+{
+    CSMFPlay *c = reinterpret_cast<CSMFPlay *>(userdata);
+    return c->m_module[(channel * 2 + 1) % c->m_mods];
+}
+
+static void rtNoteOn(void *userdata, uint8_t channel, uint8_t note, uint8_t velocity)
+{
+    CMIDIModule &m = getModule(userdata, channel);
+    m.SendNoteOn(channel, note, velocity);
+    if(channel != 9)
+    {
+        CMIDIModule &m2 = getModule2(userdata, channel);
+        m2.SendNoteOn(channel, note, velocity);
+    }
+}
+
+static void rtNoteOff(void *userdata, uint8_t channel, uint8_t note)
+{
+    CMIDIModule &m = getModule(userdata, channel);
+    m.SendNoteOff(channel, note, 0);
+    if(channel != 9)
+    {
+        CMIDIModule &m2 = getModule2(userdata, channel);
+        m2.SendNoteOff(channel, note, 0);
+    }
+}
+
+static void rtNoteAfterTouch(void *userdata, uint8_t channel, uint8_t note, uint8_t atVal)
+{
+    // サポートされていません
+}
+
+static void rtChannelAfterTouch(void *userdata, uint8_t channel, uint8_t atVal)
+{
+    CMIDIModule &m = getModule(userdata, channel);
+    m.SendChannelPressure(channel, atVal);
+    if(channel != 9)
+    {
+        CMIDIModule &m2 = getModule2(userdata, channel);
+        m2.SendChannelPressure(channel, atVal);
+    }
+}
+
+static void rtControllerChange(void *userdata, uint8_t channel, uint8_t type, uint8_t value)
+{
+    CMIDIModule &m = getModule(userdata, channel);
+    m.SendControlChange(channel, type, value);
+    if(channel != 9)
+    {
+        CMIDIModule &m2 = getModule2(userdata, channel);
+        m2.SendControlChange(channel, type, value);
+    }
+}
+
+static void rtPatchChange(void *userdata, uint8_t channel, uint8_t patch)
+{
+    CMIDIModule &m = getModule(userdata, channel);
+    m.SendProgramChange(channel, patch);
+    if(channel != 9)
+    {
+        CMIDIModule &m2 = getModule2(userdata, channel);
+        m2.SendProgramChange(channel, patch);
+    }
+}
+
+static void rtPitchBend(void *userdata, uint8_t channel, uint8_t msb, uint8_t lsb)
+{
+    CMIDIModule &m = getModule(userdata, channel);
+    m.SendPitchBend(channel, msb, lsb);
+    if(channel != 9)
+    {
+        CMIDIModule &m2 = getModule2(userdata, channel);
+        m2.SendPitchBend(channel, msb, lsb);
+    }
+}
+
+static void rtSysEx(void *userdata, const uint8_t *msg, size_t size)
+{
+    // サポートされていません
+}
+
+
+/* NonStandard calls */
+static void rtDeviceSwitch(void *userdata, size_t track, const char *data, size_t length)
+{
+    // サポートされていません
+}
+
+static size_t rtCurrentDevice(void *userdata, size_t track)
+{
+    // サポートされていません
+    return 0;
+}
+/* NonStandard calls End */
+
+
+void CSMFPlay::initSequencerInterface()
+{
+    m_sequencer = new MidiSequencer;
+    BW_MidiRtInterface *seq = new BW_MidiRtInterface;
+    if(m_sequencerInterface)
+        delete m_sequencerInterface;
+    m_sequencerInterface = seq;
+
+    std::memset(seq, 0, sizeof(BW_MidiRtInterface));
+
+    /* MIDIリアルタイムコール */
+    seq->rtUserData = this;
+    seq->rt_noteOn  = rtNoteOn;
+    seq->rt_noteOff = rtNoteOff;
+    seq->rt_noteAfterTouch = rtNoteAfterTouch;
+    seq->rt_channelAfterTouch = rtChannelAfterTouch;
+    seq->rt_controllerChange = rtControllerChange;
+    seq->rt_patchChange = rtPatchChange;
+    seq->rt_pitchBend = rtPitchBend;
+    seq->rt_systemExclusive = rtSysEx;
+
+    /* 非標準コール */
+    seq->rt_deviceSwitch = rtDeviceSwitch;
+    seq->rt_currentDevice = rtCurrentDevice;
+
+    m_sequencer->setInterface(seq);
+}
+
+double CSMFPlay::Tick(double s, double granularity)
+{
+    MidiSequencer &seqr = *m_sequencer;
+    return seqr.Tick(s, granularity);
+}
+
+}//dsa

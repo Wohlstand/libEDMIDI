@@ -59,6 +59,14 @@ public:
   RESULT Reset();
 // CMIDIメッセージ形式のMIDIメッセージを処理する。
   RESULT SendMIDIMsg(const CMIDIMsg &mes);
+
+  RESULT SendNoteOn (BYTE ch,  BYTE note, BYTE velo);
+  RESULT SendNoteOff(BYTE ch,  BYTE note, BYTE velo);
+  RESULT SendProgramChange(BYTE ch,  BYTE program);
+  RESULT SendControlChange(BYTE ch, BYTE msb, BYTE lsb);
+  RESULT SendPitchBend(BYTE ch, BYTE msb, BYTE lsb);
+  RESULT SendChannelPressure(BYTE ch, BYTE velo);
+
 // 音声のレンダリングを行う。
   RESULT Render(INT32 buf[2]);
 

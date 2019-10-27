@@ -3,7 +3,6 @@ project(libEmuDeMIDI C CXX)
 
 set(EMIDI_SRC
     src/CEnvelope.cpp
-    src/CSMF.cpp
     src/device/emu2413.c
     src/device/emu2212.c
     src/device/emu2149.c
@@ -13,6 +12,7 @@ set(EMIDI_SRC
     src/CMIDIMessage.cpp
     src/COpllDevice.cpp
     src/CSMFPlay.cpp
+    src/CMIDISequencer.cpp
 )
 
 if(WIN32)

@@ -1,7 +1,7 @@
 /*
  * BW_Midi_Sequencer - MIDI Sequencer for C++
  *
- * Copyright (c) 2015-2018 Vitaly Novichkov <admin@wohlnet.ru>
+ * Copyright (c) 2015-2019 Vitaly Novichkov <admin@wohlnet.ru>
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the "Software"),
@@ -46,6 +46,36 @@ typedef int64_t ssize_t;
 typedef int32_t ssize_t;
 #       endif
 #   endif
+#endif
+
+#if defined(_MSC_VER) && _MSC_VER < 1900
+
+#define snprintf c99_snprintf
+#define vsnprintf c99_vsnprintf
+
+__inline int c99_vsnprintf(char *outBuf, size_t size, const char *format, va_list ap)
+{
+    int count = -1;
+
+    if (size != 0)
+        count = _vsnprintf_s(outBuf, size, _TRUNCATE, format, ap);
+    if (count == -1)
+        count = _vscprintf(format, ap);
+
+    return count;
+}
+
+__inline int c99_snprintf(char *outBuf, size_t size, const char *format, ...)
+{
+    int count;
+    va_list ap;
+
+    va_start(ap, format);
+    count = c99_vsnprintf(outBuf, size, format, ap);
+    va_end(ap);
+
+    return count;
+}
 #endif
 
 #ifndef BWMIDI_DISABLE_MUS_SUPPORT
@@ -206,7 +236,7 @@ void BW_MidiSequencer::MidiTrackRow::sortEvents(bool *noteStates)
             const MidiEvent e = anyOther[i];
             if(e.type == MidiEvent::T_NOTEON)
             {
-                const size_t note_i = (e.channel * 255) + (e.data[0] & 0x7F);
+                const size_t note_i = static_cast<size_t>(e.channel * 255) + (e.data[0] & 0x7F);
                 //Check, was previously note is on or off
                 bool wasOn = noteStates[note_i];
                 markAsOn.insert(note_i);
@@ -244,7 +274,7 @@ void BW_MidiSequencer::MidiTrackRow::sortEvents(bool *noteStates)
         //Mark other notes as released
         for(EvtArr::iterator j = noteOffs.begin(); j != noteOffs.end(); j++)
         {
-            size_t note_i = (j->channel * 255) + (j->data[0] & 0x7F);
+            size_t note_i = static_cast<size_t>(j->channel * 255) + (j->data[0] & 0x7F);
             noteStates[note_i] = false;
         }
 
@@ -272,13 +302,14 @@ BW_MidiSequencer::BW_MidiSequencer() :
     m_smfFormat(0),
     m_loopFormat(Loop_Default),
     m_loopEnabled(false),
+    m_loopHooksOnly(false),
     m_fullSongTimeLength(0.0),
     m_postSongWaitDelay(1.0),
     m_loopStartTime(-1.0),
     m_loopEndTime(-1.0),
     m_tempoMultiplier(1.0),
     m_atEnd(false),
-    m_trackSolo(~(size_t)0),
+    m_trackSolo(~static_cast<size_t>(0)),
     m_triggerHandler(NULL),
     m_triggerUserData(NULL)
 {
@@ -362,6 +393,11 @@ bool BW_MidiSequencer::getLoopEnabled()
 void BW_MidiSequencer::setLoopEnabled(bool enabled)
 {
     m_loopEnabled = enabled;
+}
+
+void BW_MidiSequencer::setLoopHooksOnly(bool enabled)
+{
+    m_loopHooksOnly = enabled;
 }
 
 const std::string &BW_MidiSequencer::getMusicTitle()
@@ -483,12 +519,12 @@ bool BW_MidiSequencer::buildSmfTrackData(const std::vector<std::vector<uint8_t> 
             //HACK: Begin every track with "Reset all controllers" event to avoid controllers state break came from end of song
             for(uint8_t chan = 0; chan < 16; chan++)
             {
-                MidiEvent event;
-                event.type = MidiEvent::T_CTRLCHANGE;
-                event.channel = chan;
-                event.data.push_back(121);
-                event.data.push_back(0);
-                evtPos.events.push_back(event);
+                MidiEvent resetEvent;
+                resetEvent.type = MidiEvent::T_CTRLCHANGE;
+                resetEvent.channel = chan;
+                resetEvent.data.push_back(121);
+                resetEvent.data.push_back(0);
+                evtPos.events.push_back(resetEvent);
             }
 
             evtPos.absPos = abs_position;
@@ -819,7 +855,7 @@ void BW_MidiSequencer::buildTimeLine(const std::vector<MidiEvent> &tempos,
     //Resolve "hell of all times" of too short drum notes:
     //move too short percussion note-offs far far away as possible
     /********************************************************************************/
-#if 1 //Use this to record WAVEs for comparison before/after implementing of this
+#if 0 //Use this to record WAVEs for comparison before/after implementing of this
     if(m_format == Format_MIDI)//Percussion fix is needed for MIDI only, not for IMF/RSXX or CMF
     {
         //! Minimal real time in seconds
@@ -863,6 +899,8 @@ void BW_MidiSequencer::buildTimeLine(const std::vector<MidiEvent> &tempos,
                             break;
                         case 32: // Set bank lsb (XG bank)
                             banks[et->channel] = (banks[et->channel] & 0xFF00) | (value & 0x00FF);
+                            break;
+                        default:
                             break;
                         }
                         continue;
@@ -949,6 +987,7 @@ bool BW_MidiSequencer::processEvents(bool isSeek)
     unsigned caughLoopStart = 0;
     unsigned caughLoopStackStart = 0;
     unsigned caughLoopStackEnds = 0;
+    double   caughLoopStackEndsTime = 0.0;
     unsigned caughLoopStackBreaks = 0;
 
 #ifdef DEBUG_TIME_CALCULATION
@@ -981,12 +1020,18 @@ bool BW_MidiSequencer::processEvents(bool isSeek)
 
                 if(m_loop.caughtStart)
                 {
+                    if(m_interface->onloopStart)//Loop Start hook
+                        m_interface->onloopStart(m_interface->onloopStart_userData);
+
                     caughLoopStart++;
                     m_loop.caughtStart = false;
                 }
 
                 if(m_loop.caughtStackStart)
                 {
+                    if(m_interface->onloopStart && (m_loopStartTime >= track.pos->time))//Loop Start hook
+                        m_interface->onloopStart(m_interface->onloopStart_userData);
+
                     caughLoopStackStart++;
                     m_loop.caughtStackStart = false;
                 }
@@ -1003,6 +1048,7 @@ bool BW_MidiSequencer::processEvents(bool isSeek)
                     {
                         m_loop.caughtStackEnd = false;
                         caughLoopStackEnds++;
+                        caughLoopStackEndsTime = track.pos->time;
                     }
                     doLoopJump = true;
                     break;//Stop event handling on catching loopEnd event!
@@ -1092,6 +1138,15 @@ bool BW_MidiSequencer::processEvents(bool isSeek)
             LoopStackEntry &s = m_loop.getCurStack();
             if(s.infinity)
             {
+                if(m_interface->onloopEnd && (m_loopEndTime >= caughLoopStackEndsTime))//Loop End hook
+                {
+                    m_interface->onloopEnd(m_interface->onloopEnd_userData);
+                    if(m_loopHooksOnly)//Stop song on reaching loop end
+                    {
+                        m_atEnd = true; //Don't handle events anymore
+                        m_currentPosition.wait += m_postSongWaitDelay;//One second delay until stop playing
+                    }
+                }
                 m_currentPosition = s.startPosition;
                 m_loop.skipStackStart = true;
                 return true;
@@ -1125,10 +1180,14 @@ bool BW_MidiSequencer::processEvents(bool isSeek)
 
     if(shortest_no || m_loop.caughtEnd)
     {
+        if(m_interface->onloopEnd)//Loop End hook
+            m_interface->onloopEnd(m_interface->onloopEnd_userData);
+
         //Loop if song end or loop end point has reached
         m_loop.caughtEnd         = false;
         shortest = 0;
-        if(!m_loopEnabled)
+
+        if(!m_loopEnabled || m_loopHooksOnly)
         {
             m_atEnd = true; //Don't handle events anymore
             m_currentPosition.wait += m_postSongWaitDelay;//One second delay until stop playing
@@ -1223,12 +1282,12 @@ BW_MidiSequencer::MidiEvent BW_MidiSequencer::parseEvent(const uint8_t **pptr, c
                 if(m_interface->onDebugMessage)
                     m_interface->onDebugMessage(m_interface->onDebugMessage_userData, "Music title: %s", m_musTitle.c_str());
             }
-            else if(m_interface->onDebugMessage)
+            else
             {
-                //TODO: Store track titles and associate them with each track and make API to retreive them
                 std::string str((const char *)evt.data.data(), evt.data.size());
                 m_musTrackTitles.push_back(str);
-                m_interface->onDebugMessage(m_interface->onDebugMessage_userData, "Track title: %s", str.c_str());
+                if(m_interface->onDebugMessage)
+                    m_interface->onDebugMessage(m_interface->onDebugMessage_userData, "Track title: %s", str.c_str());
             }
         }
         else if(evt.subtype == MidiEvent::ST_INSTRTITLE)
@@ -1526,6 +1585,8 @@ BW_MidiSequencer::MidiEvent BW_MidiSequencer::parseEvent(const uint8_t **pptr, c
         }
         evt.data.push_back(*(ptr++));
         return evt;
+    default:
+        break;
     }
 
     return evt;
@@ -1541,7 +1602,7 @@ void BW_MidiSequencer::handleEvent(size_t track, const BW_MidiSequencer::MidiEve
     }
     else
     {
-        if(m_trackSolo != ~(size_t)0 && track != m_trackSolo)
+        if(m_trackSolo != ~static_cast<size_t>(0) && track != m_trackSolo)
             return;
         if(m_trackDisable[track])
             return;
@@ -1572,8 +1633,8 @@ void BW_MidiSequencer::handleEvent(size_t track, const BW_MidiSequencer::MidiEve
     {
         // Special event FF
         uint8_t  evtype = evt.subtype;
-        uint64_t length = (uint64_t)evt.data.size();
-        const char *data(length ? (const char *)evt.data.data() : "");
+        uint64_t length = static_cast<uint64_t>(evt.data.size());
+        const char *data(length ? reinterpret_cast<const char *>(evt.data.data()) : "");
 
         if(evtype == MidiEvent::ST_ENDTRACK)//End Of Track
         {
@@ -1624,8 +1685,8 @@ void BW_MidiSequencer::handleEvent(size_t track, const BW_MidiSequencer::MidiEve
                     m_loop.skipStackStart = false;
                     return;
                 }
-                LoopStackEntry &s = m_loop.stack[(m_loop.stackLevel + 1)];
-                s.loops = (int)data[0];
+                LoopStackEntry &s = m_loop.stack[static_cast<size_t>(m_loop.stackLevel + 1)];
+                s.loops = static_cast<int>(data[0]);
                 s.infinity = (data[0] == 0);
                 m_loop.caughtStackStart = true;
                 return;
@@ -1651,7 +1712,7 @@ void BW_MidiSequencer::handleEvent(size_t track, const BW_MidiSequencer::MidiEve
                 m_interface->onDebugMessage(m_interface->onDebugMessage_userData, "Callback Trigger: %02X", evt.data[0]);
 #endif
             if(m_triggerHandler)
-                m_triggerHandler(m_triggerUserData, data[0], track);
+                m_triggerHandler(m_triggerUserData, static_cast<unsigned>(data[0]), track);
             return;
         }
 
@@ -1727,6 +1788,9 @@ void BW_MidiSequencer::handleEvent(size_t track, const BW_MidiSequencer::MidiEve
         m_interface->rt_pitchBend(m_interface->rtUserData, static_cast<uint8_t>(midCh), b, a);
         break;
     }
+
+    default:
+        break;
     }//switch
 }
 
@@ -1961,7 +2025,7 @@ static bool detectIMF(const char *head, FileAndMemReader &fr)
 
 bool BW_MidiSequencer::loadMIDI(FileAndMemReader &fr)
 {
-    size_t  fsize;
+    size_t  fsize = 0;
     BW_MidiSequencer_UNUSED(fsize);
     m_parsingErrorsString.clear();
 
@@ -2110,7 +2174,7 @@ bool BW_MidiSequencer::parseIMF(FileAndMemReader &fr)
         event.data[0] = imfRaw[0]; // port index
         event.data[1] = imfRaw[1]; // port value
         event.absPosition = abs_position;
-        event.isValid = true;
+        event.isValid = 1;
 
         evtPos.events.push_back(event);
         evtPos.delay = static_cast<uint64_t>(imfRaw[2]) + 256 * static_cast<uint64_t>(imfRaw[3]);
@@ -2124,7 +2188,7 @@ bool BW_MidiSequencer::parseIMF(FileAndMemReader &fr)
         }
     }
 
-    if(m_trackData[0].size() > 0)
+    if(!m_trackData[0].empty())
         m_currentPosition.track[0].pos = m_trackData[0].begin();
 
     buildTimeLine(temposList);

@@ -1,7 +1,7 @@
 /*
  * BW_Midi_Sequencer - MIDI Sequencer for C++
  *
- * Copyright (c) 2015-2018 Vitaly Novichkov <admin@wohlnet.ru>
+ * Copyright (c) 2015-2019 Vitaly Novichkov <admin@wohlnet.ru>
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the "Software"),
@@ -343,6 +343,8 @@ private:
 
     //! Is looping enabled or not
     bool    m_loopEnabled;
+    //! Don't process loop: trigger hooks only if they are set
+    bool    m_loopHooksOnly;
 
     //! Full song length in seconds
     double m_fullSongTimeLength;
@@ -384,6 +386,13 @@ private:
      */
     struct LoopStackEntry
     {
+        LoopStackEntry() :
+            infinity(false),
+            loops(0),
+            start(0),
+            end(0)
+        {}
+
         //! is infinite loop
         bool infinity;
         //! Count of loops left to break. <0 - infinite loop
@@ -568,6 +577,12 @@ public:
      * @param enabled Enable loop
      */
     void setLoopEnabled(bool enabled);
+
+    /**
+     * @brief Switch loop hooks-only mode on/off
+     * @param enabled Don't loop: trigger hooks only without loop
+     */
+    void setLoopHooksOnly(bool enabled);
 
     /**
      * @brief Get music title
