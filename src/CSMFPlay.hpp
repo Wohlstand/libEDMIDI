@@ -4,7 +4,7 @@
 
 #include "CMIDIModule.hpp"
 
-// Rename class to avoid ABI collisions
+// クラスの名前を変更してABIの衝突を回避する
 #define BW_MidiSequencer EmuDeMidiMidiSequencer
 class BW_MidiSequencer;
 typedef BW_MidiSequencer MidiSequencer;
@@ -19,21 +19,15 @@ class CSMFPlay
     friend CMIDIModule &getModule2(void *userdata, uint8_t channel);
     CMIDIModule m_module[16];
 
-    std::vector<bool> m_end_flag;
-    std::vector<int>  m_delta;
     int m_tempo;
     double m_time_rest;
     int m_playing_tracks;
     int m_mods;
     int m_rate;
 
-    int rendered_ticks;
-    int wanted_ticks;
-
     double m_mindelay;
     double m_maxdelay;
     double m_delay;
-    double m_carry;
 
     MidiSequencer *m_sequencer;
     BW_MidiRtInterface *m_sequencerInterface;
@@ -50,8 +44,6 @@ public:
     void Start(bool reset = true);
 
     void SetLoop(bool enabled);
-
-    void SetEndPoint(int tick);
 };
 
 } // namespace dsa

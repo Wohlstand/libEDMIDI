@@ -20,8 +20,6 @@ CSMFPlay::CSMFPlay(DWORD rate, int mods)
     m_sequencerInterface = NULL;
     m_rate = rate;
     m_mods = mods;
-    rendered_ticks = 0;
-    wanted_ticks = 0;
     for(int i = 0; i < m_mods; i++)
     {
         if(i & 1)
@@ -31,9 +29,8 @@ CSMFPlay::CSMFPlay(DWORD rate, int mods)
     }
 
     m_mindelay = 1.0 / static_cast<double>(m_rate);
-    m_maxdelay = 512.0 / static_cast<double>(m_rate);
     m_delay = 0.0;
-    m_carry = 0.0;
+    m_time_rest = 0.0;
     initSequencerInterface();
 }
 
@@ -65,26 +62,12 @@ void CSMFPlay::Start(bool reset)
             m_module[i].Reset();
     }
 
-    m_tempo = (60 * 1000000) / 120;
-    m_time_rest = 0.0;
-
-    rendered_ticks = 0;
-    wanted_ticks = 0;
-
-    m_delta.clear();
-    m_end_flag.clear();
-
     m_sequencer->seek(0, 0);
 }
 
 void CSMFPlay::SetLoop(bool enabled)
 {
     m_sequencer->setLoopEnabled(enabled);
-}
-
-void CSMFPlay::SetEndPoint(int tick)
-{
-    wanted_ticks = tick;
 }
 
 DWORD CSMFPlay::Render(int *buf, DWORD length)
@@ -97,11 +80,11 @@ DWORD CSMFPlay::Render(int *buf, DWORD length)
     while(left > 0)
     {
         const double leftDelay = left / double(m_rate);
-        const double maxDelay = m_carry < leftDelay ? m_carry : leftDelay;
+        const double maxDelay = m_time_rest < leftDelay ? m_time_rest : leftDelay;
         if((m_sequencer->positionAtEnd()) && (m_delay <= 0.0))
             break;//Stop to fetch samples at reaching the song end with disabled loop
 
-        m_carry -= maxDelay;
+        m_time_rest -= maxDelay;
         n_periodCountStereo = double(m_rate) * maxDelay;
 
         if(buf)
@@ -124,10 +107,10 @@ DWORD CSMFPlay::Render(int *buf, DWORD length)
             }
         }
 
-        if(m_carry <= 0.0)
+        if(m_time_rest <= 0.0)
         {
             m_delay = m_sequencer->Tick(m_delay, m_mindelay);
-            m_carry += m_delay;
+            m_time_rest += m_delay;
         }
     } // end while (left > 0)
 
