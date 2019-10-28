@@ -1,8 +1,9 @@
 #ifndef __MIDI_MODULE_HPP__
 #define __MIDI_MODULE_HPP__
 
+#include <deque>
+#include <stdint.h>
 #include "ISoundDevice.hpp"
-#include "CMIDIMessage.hpp"
 
 namespace dsa {
 
@@ -57,9 +58,8 @@ public:
   void AttachDevice(ISoundDevice *device){ m_device = device; }
   ISoundDevice *DetachDevice(){ ISoundDevice *tmp=m_device; m_device = NULL; return tmp; }
   RESULT Reset();
-// CMIDIメッセージ形式のMIDIメッセージを処理する。
-  RESULT SendMIDIMsg(const CMIDIMsg &mes);
 
+// CMIDIメッセージ形式のMIDIメッセージを処理する。
   RESULT SendNoteOn (BYTE ch,  BYTE note, BYTE velo);
   RESULT SendNoteOff(BYTE ch,  BYTE note, BYTE velo);
   RESULT SendProgramChange(BYTE ch,  BYTE program);

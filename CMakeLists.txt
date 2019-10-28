@@ -9,7 +9,6 @@ set(EMIDI_SRC
     src/CMIDIModule.cpp
     src/CSccDevice.cpp
     src/CPSGDrum.cpp
-    src/CMIDIMessage.cpp
     src/COpllDevice.cpp
     src/CSMFPlay.cpp
     src/CMIDISequencer.cpp

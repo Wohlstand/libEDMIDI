@@ -371,6 +371,7 @@ RESULT CMIDIModule::Render(INT32 buf[2])
         return m_device->Render(buf);
 }
 
+#if 0
 RESULT CMIDIModule::SendMIDIMsg(const CMIDIMsg &msg)
 {
 
@@ -396,6 +397,7 @@ RESULT CMIDIModule::SendMIDIMsg(const CMIDIMsg &msg)
         ChannelPressure(msg.m_ch, msg.m_data[0]);
     return SUCCESS;
 }
+#endif
 
 RESULT CMIDIModule::SendNoteOn(BYTE ch, BYTE note, BYTE velo)
 {
