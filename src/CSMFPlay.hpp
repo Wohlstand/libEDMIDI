@@ -10,6 +10,16 @@ class BW_MidiSequencer;
 typedef BW_MidiSequencer MidiSequencer;
 typedef struct BW_MidiRtInterface BW_MidiRtInterface;
 
+#ifndef OPNMIDI_EXPORT
+#   if defined (_WIN32) && defined(OPNMIDI_BUILD_DLL)
+#       define OPNMIDI_EXPORT __declspec(dllexport)
+#   elif defined (LIBOPNMIDI_VISIBILITY) && defined (__GNUC__)
+#       define OPNMIDI_EXPORT __attribute__((visibility ("default")))
+#   else
+#       define OPNMIDI_EXPORT
+#   endif
+#endif
+
 namespace dsa
 {
 
@@ -20,16 +30,10 @@ class CSMFPlay
     CMIDIModule m_module[16];
 
     int m_tempo;
-    double m_time_rest;
     int m_playing_tracks;
     int m_mods;
     int m_rate;
 
-    double m_mindelay;
-    double m_maxdelay;
-    double m_delay;
-
-    MidiSequencer *m_sequencer;
     BW_MidiRtInterface *m_sequencerInterface;
     void initSequencerInterface();
 
@@ -38,12 +42,18 @@ class CSMFPlay
 public:
     CSMFPlay(DWORD rate, int mods = 4);
     ~CSMFPlay();
-    bool Open(char *filename);
+    bool Open(const char *filename);
     bool Load(const void *buf, int size);
-    DWORD Render(int *buf, DWORD length);
+    DWORD Render(short *buf, DWORD length);
     void Start(bool reset = true);
 
     void SetLoop(bool enabled);
+
+    MidiSequencer *m_sequencer;
+    double m_mindelay;
+    double m_maxdelay;
+    double m_delay;
+    double m_time_rest;
 };
 
 } // namespace dsa

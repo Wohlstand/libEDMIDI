@@ -26,17 +26,11 @@ struct MidPlayInstance
 void my_audio_callback(void *midi_player, Uint8 *stream, int len)
 {
     MidPlayInstance *mp = (MidPlayInstance*)midi_player;
-    int i = 0;
     int count = len / sizeof(short);
     short* dest = (short*)stream;
-    DWORD got = mp->p->Render(buf, (count >> 1));
+    DWORD got = mp->p->Render(dest, (count >> 1));
     if(got == 0)
         is_playing = 0;
-    for(i = 0; i < count; i += 2)
-    {
-        *(dest++) = buf[i];
-        *(dest++) = buf[i + 1];
-    }
 }
 
 static volatile int done = 0 ;

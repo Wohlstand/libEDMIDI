@@ -21,7 +21,8 @@ else()
 endif()
 
 add_executable(emidi ${EMIDI_SRC} ${EMIDI_EXE_SRC})
-target_include_directories(emidi PRIVATE src)
+target_compile_definitions(emidi PRIVATE -DEDMIDI_BUILD)
+target_include_directories(emidi PRIVATE src include)
 
 if(WIN32)
     target_link_libraries(emidi PUBLIC winmm user32 gdi32)
