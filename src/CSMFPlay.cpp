@@ -28,9 +28,6 @@ CSMFPlay::CSMFPlay(DWORD rate, int mods)
             m_module[i].AttachDevice(new COpllDevice(rate, 2));
     }
 
-    m_mindelay = 1.0 / static_cast<double>(m_rate);
-    m_delay = 0.0;
-    m_time_rest = 0.0;
     initSequencerInterface();
 }
 
@@ -72,47 +69,5 @@ void CSMFPlay::SetLoop(bool enabled)
 
 DWORD CSMFPlay::Render(int *buf, DWORD length)
 {
-    DWORD idx = 0;
-    length -= length % 2; // サンプルリクエストでさえ避ける
-    int left = length;
-    long n_periodCountStereo = 0;
-
-    while(left > 0)
-    {
-        const double leftDelay = left / double(m_rate);
-        const double maxDelay = m_time_rest < leftDelay ? m_time_rest : leftDelay;
-        if((m_sequencer->positionAtEnd()) && (m_delay <= 0.0))
-            break;//Stop to fetch samples at reaching the song end with disabled loop
-
-        m_time_rest -= maxDelay;
-        n_periodCountStereo = double(m_rate) * maxDelay;
-
-        if(buf)
-        {
-            size_t to_generate = 0;
-            size_t in_generatedStereo = n_periodCountStereo > left ? left : n_periodCountStereo;
-            while(to_generate < in_generatedStereo)
-            {
-                buf[idx * 2] = buf[idx * 2 + 1] = 0;
-                for(int i = 0; i < m_mods; i++)
-                {
-                    INT32 b[2];
-                    m_module[i].Render(b);
-                    buf[idx * 2] += b[0];
-                    buf[idx * 2 + 1] += b[1];
-                }
-                idx++;
-                left--;
-                to_generate++;
-            }
-        }
-
-        if(m_time_rest <= 0.0)
-        {
-            m_delay = m_sequencer->Tick(m_delay, m_mindelay);
-            m_time_rest += m_delay;
-        }
-    } // end while (left > 0)
-
-    return idx;
+    return DWORD(m_sequencer->playStream(reinterpret_cast<uint8_t *>(buf), static_cast<size_t>(length * 8)));
 }
