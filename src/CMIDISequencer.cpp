@@ -115,6 +115,27 @@ static size_t rtCurrentDevice(void *userdata, size_t track)
 /* NonStandard calls End */
 
 
+void playSynth(void *userdata, uint8_t *stream, size_t length)
+{
+    CSMFPlay *c = reinterpret_cast<CSMFPlay *>(userdata);
+    DWORD len = static_cast<DWORD>(length / 8);
+    int *buf = reinterpret_cast<int*>(stream);
+    INT32 b[2];
+
+    for(DWORD q = 0; q < len; q++)
+    {
+        buf[0] = buf[1] = 0;
+        for(int i = 0; i < c->m_mods; i++)
+        {
+            c->m_module[i].Render(b);
+            buf[0] += b[0];
+            buf[1] += b[1];
+        }
+        buf += 2;
+    }
+}
+
+
 void CSMFPlay::initSequencerInterface()
 {
     m_sequencer = new MidiSequencer;
@@ -135,6 +156,12 @@ void CSMFPlay::initSequencerInterface()
     seq->rt_patchChange = rtPatchChange;
     seq->rt_pitchBend = rtPitchBend;
     seq->rt_systemExclusive = rtSysEx;
+
+    seq->onPcmRender = playSynth;
+    seq->onPcmRender_userData = this;
+
+    seq->pcmSampleRate = static_cast<uint32_t>(m_rate);
+    seq->pcmFrameSize = 2 /*channels*/ * 4 /*size of one sample*/;
 
     /* 非標準コール */
     seq->rt_deviceSwitch = rtDeviceSwitch;

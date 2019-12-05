@@ -27,13 +27,13 @@ class CSMFPlay
 {
     friend CMIDIModule &getModule(void *userdata, uint8_t channel);
     friend CMIDIModule &getModule2(void *userdata, uint8_t channel);
+    friend void playSynth(void *userdata, uint8_t *stream, size_t length);
     CMIDIModule m_module[16];
 
-    int m_tempo;
-    int m_playing_tracks;
     int m_mods;
     int m_rate;
 
+    MidiSequencer *m_sequencer;
     BW_MidiRtInterface *m_sequencerInterface;
     void initSequencerInterface();
 
