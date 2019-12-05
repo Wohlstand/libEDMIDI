@@ -2,6 +2,7 @@
 #define __MIDI_MODULE_HPP__
 
 #include <deque>
+#include <cstddef>
 #include <stdint.h>
 #include "ISoundDevice.hpp"
 
@@ -26,7 +27,7 @@ private:
   // MIDIチャンネルで使用しているOPLLチャンネルの集合(発音順のキュー）
   std::deque<KeyInfo> m_used_channels[16];
   // キーオフしているOPLLチャンネルの集合
-  std::deque<KeyInfo> m_off_channels; 
+  std::deque<KeyInfo> m_off_channels;
   // The current entry value of RPN/NRPN
   // NRPN=1, RPN=0;
   int m_entry_mode;
