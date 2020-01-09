@@ -97,9 +97,10 @@ void CMIDIModule::PitchBend(BYTE midi_ch, BYTE msb, BYTE lsb)
 
 void CMIDIModule::ChannelPressure(BYTE midi_ch, BYTE velo)
 {
-    std::deque<KeyInfo>::iterator it;
-    for(it = m_used_channels[midi_ch].begin(); it != m_used_channels[midi_ch].end(); it++)
-        m_device->SetVelocity((*it).dev_ch, velo);
+// TODO: Implement a missing TRUE vibrato (probably use a code from libOPNMIDI), Channel Pressure should be a tremolo, NOT a volume
+//    std::deque<KeyInfo>::iterator it;
+//    for(it = m_used_channels[midi_ch].begin(); it != m_used_channels[midi_ch].end(); it++)
+//        m_device->SetVibrato((*it).dev_ch, velo);
 }
 
 void CMIDIModule::NoteOn(BYTE midi_ch, BYTE note, BYTE velo)
