@@ -4,7 +4,6 @@
 #include <deque>
 #include <cstddef>
 #include <stdint.h>
-#include <stddef.h>
 #include "ISoundDevice.hpp"
 
 namespace dsa {
