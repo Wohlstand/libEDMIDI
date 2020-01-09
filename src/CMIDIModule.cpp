@@ -24,6 +24,8 @@ RESULT CMIDIModule::Reset()
         {
             m_used_channels[i].clear();
             m_program[i] = 3;
+            m_bank_msb[i] = 0;
+            m_bank_lsb[i] = 0;
             m_volume[i] = 127;
             m_bend[i] = 0;
             m_bend_coarse[i] = 0;
@@ -304,15 +306,31 @@ void CMIDIModule::RPN(BYTE midi_ch, bool is_lsb, BYTE data)
     }
 }
 
+void CMIDIModule::updateBanks(BYTE ch)
+{
+    if(ch != 9)
+        m_drum[ch] = ((m_bank_lsb[ch] == 0) && (m_bank_msb[ch] == 127)) ? 1 : 0;
+}
+
 void CMIDIModule::ControlChange(BYTE midi_ch, BYTE msb, BYTE lsb)
 {
 
     if(msb < 0x40) // 14-bit
     {
+        if(msb == 0x20)
+        {
+            m_bank_lsb[midi_ch] = lsb;
+            updateBanks(midi_ch);
+            return;
+        }
+
         bool is_low = (msb & 0x20) ? true : false;
         switch(msb & 0x1F)
         {
-        //case 0x00: BankSelect(midi_ch, is_low, lsb); break;
+        case 0x00:
+            m_bank_msb[midi_ch] = lsb;
+            updateBanks(midi_ch);
+            break;
         //case 0x01: ModulationDepth(midi_ch, is_low, lsb); break;
         //case 0x02: BreathControl(midi_ch, is_low, lsb); break;
         //case 0x04: FootControl(midi_ch, is_low, lsb); break;
@@ -448,6 +466,11 @@ RESULT CMIDIModule::SendChannelPressure(BYTE ch, BYTE velo)
         return FAILURE;
     ChannelPressure(ch, velo);
     return SUCCESS;
+}
+
+bool CMIDIModule::IsDrum(BYTE ch)
+{
+    return (m_drum[ch] != 0);
 }
 
 RESULT CMIDIModule::SetDrumChannel(int midi_ch, int enable)

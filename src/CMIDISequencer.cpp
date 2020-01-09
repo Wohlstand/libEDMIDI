@@ -28,7 +28,7 @@ static void rtNoteOn(void *userdata, uint8_t channel, uint8_t note, uint8_t velo
 {
     CMIDIModule &m = getModule(userdata, channel);
     m.SendNoteOn(channel, note, velocity);
-    if(channel != 9)
+    if(!m.IsDrum(channel))
     {
         CMIDIModule &m2 = getModule2(userdata, channel);
         m2.SendNoteOn(channel, note, velocity);
@@ -39,7 +39,7 @@ static void rtNoteOff(void *userdata, uint8_t channel, uint8_t note)
 {
     CMIDIModule &m = getModule(userdata, channel);
     m.SendNoteOff(channel, note, 0);
-    if(channel != 9)
+    if(!m.IsDrum(channel))
     {
         CMIDIModule &m2 = getModule2(userdata, channel);
         m2.SendNoteOff(channel, note, 0);
@@ -55,7 +55,7 @@ static void rtChannelAfterTouch(void *userdata, uint8_t channel, uint8_t atVal)
 {
     CMIDIModule &m = getModule(userdata, channel);
     m.SendChannelPressure(channel, atVal);
-    if(channel != 9)
+    if(!m.IsDrum(channel))
     {
         CMIDIModule &m2 = getModule2(userdata, channel);
         m2.SendChannelPressure(channel, atVal);
@@ -77,7 +77,7 @@ static void rtPatchChange(void *userdata, uint8_t channel, uint8_t patch)
 {
     CMIDIModule &m = getModule(userdata, channel);
     m.SendProgramChange(channel, patch);
-    if(channel != 9)
+    if(!m.IsDrum(channel))
     {
         CMIDIModule &m2 = getModule2(userdata, channel);
         m2.SendProgramChange(channel, patch);
@@ -88,7 +88,7 @@ static void rtPitchBend(void *userdata, uint8_t channel, uint8_t msb, uint8_t ls
 {
     CMIDIModule &m = getModule(userdata, channel);
     m.SendPitchBend(channel, msb, lsb);
-    if(channel != 9)
+    if(!m.IsDrum(channel))
     {
         CMIDIModule &m2 = getModule2(userdata, channel);
         m2.SendPitchBend(channel, msb, lsb);
