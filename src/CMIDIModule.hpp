@@ -2,6 +2,7 @@
 #define __MIDI_MODULE_HPP__
 
 #include <deque>
+#include <cstddef>
 #include <stdint.h>
 #include <stddef.h>
 #include "ISoundDevice.hpp"
