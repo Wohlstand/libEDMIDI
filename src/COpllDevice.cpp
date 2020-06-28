@@ -302,24 +302,25 @@ void COpllDevice::KeyOff(UINT ch) {
 
 void COpllDevice::PercSetVelocity(UINT8 note, UINT8 velo) {
   note = perc_table[note];
-  if (0<note) m_pi.velocity[note-1] = velo;
-  _PercUpdateVolume(note);
+  if (0<note) {
+    m_pi.velocity[note-1] = velo;
+    _PercUpdateVolume(note);
+  }
 }
 
 void COpllDevice::_PercUpdateVolume(UINT8 note) {
-  
-  if(note>5)
+  if(note<1 || note>5)
     throw RuntimeException("Invalid Drum Tone",__FILE__,__LINE__);
 
-  int vol = 13 - m_pi.volume/16 - m_pi.velocity[note]/16; 
+  int vol = 13 - m_pi.volume/16 - m_pi.velocity[note-1]/16;
   if(vol<0) 
-    m_pi.vcache[note] = 0;
+    m_pi.vcache[note-1] = 0;
   else if(15<vol) 
-    m_pi.vcache[note] = 15;
+    m_pi.vcache[note-1] = 15;
   else 
-    m_pi.vcache[note] = vol;
-  
-  switch (note) {
+    m_pi.vcache[note-1] = vol;
+
+  switch (note-1) {
   case 4: //B.D
     _WriteReg(0x30+6,m_pi.vcache[4]);
     break;
@@ -343,7 +344,10 @@ void COpllDevice::PercSetProgram(UINT8 bank, UINT8 prog) {
 
 void COpllDevice::PercSetVolume(UINT8 vol) {
   m_pi.volume = vol;
-  for(int i=0; i<5 ;i++) _PercUpdateVolume(i);
+  for(int i=0; i<5 ;i++) {
+    int note = i+1;
+    _PercUpdateVolume(note);
+  }
 }
 
 void COpllDevice::PercKeyOn(UINT8 note) {
