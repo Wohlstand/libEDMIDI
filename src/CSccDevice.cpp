@@ -131,7 +131,7 @@ RESULT CSccDevice::Reset(void) {
   for(UINT i=0;i<m_nch; i++) {
     SCC_reset(m_scc[i]);
     SCC_set_type(m_scc[i],SCC_ENHANCED);
-    memset(m_reg_cache[i],0,128);
+    memset(m_reg_cache[i],0,256);
     m_rbuf[i].clear();
   }
   }

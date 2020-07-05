@@ -87,8 +87,12 @@ COpllDevice::COpllDevice(DWORD rate, UINT nch) {
   else 
     m_nch = 1;
   
-  for(UINT i=0;i<m_nch;i++)
+  for(UINT i=0;i<m_nch;i++) {
     m_opll[i] = OPLL_new(3579545,rate);
+    memset(m_reg_cache[i],0,128);
+    m_rbuf[i].clear();
+  }
+
   Reset();
 }
 
