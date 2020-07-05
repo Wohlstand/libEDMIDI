@@ -13,6 +13,8 @@ private:
   struct KeyInfo { int midi_ch, dev_ch, note; };
   ISoundDevice *m_device;
 
+  int m_bank_msb[16];
+  int m_bank_lsb[16];
   int m_NRPN[16], m_RPN[16];
   int m_volume[16];
   int m_bend_coarse[16];
@@ -31,6 +33,8 @@ private:
   // The current entry value of RPN/NRPN
   // NRPN=1, RPN=0;
   int m_entry_mode;
+
+  void updateBanks(BYTE ch);
 
 protected:
   virtual void ControlChange(BYTE ch, BYTE msb, BYTE lsb);
@@ -67,6 +71,8 @@ public:
   RESULT SendControlChange(BYTE ch, BYTE msb, BYTE lsb);
   RESULT SendPitchBend(BYTE ch, BYTE msb, BYTE lsb);
   RESULT SendChannelPressure(BYTE ch, BYTE velo);
+
+  bool   IsDrum(BYTE ch);
 
 // 音声のレンダリングを行う。
   RESULT Render(INT32 buf[2]);

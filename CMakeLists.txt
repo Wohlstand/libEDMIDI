@@ -1,6 +1,9 @@
 cmake_minimum_required (VERSION 3.2)
 project(libEmuDeMIDI C CXX)
 
+set(CMAKE_C_STANDARD 90)
+set(CMAKE_CXX_STANDARD 98)
+
 set(EMIDI_SRC
     src/CEnvelope.cpp
     src/device/emu2413.c
