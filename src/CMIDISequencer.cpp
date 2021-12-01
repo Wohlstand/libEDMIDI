@@ -135,6 +135,46 @@ void playSynth(void *userdata, uint8_t *stream, size_t length)
     }
 }
 
+void playSynthS16(void *userdata, uint8_t *stream, size_t length)
+{
+    CSMFPlay *c = reinterpret_cast<CSMFPlay *>(userdata);
+    DWORD len = static_cast<DWORD>(length / 4);
+    short *buf = reinterpret_cast<short*>(stream);
+    INT32 b[2];
+
+    for(DWORD q = 0; q < len; q++)
+    {
+        buf[0] = buf[1] = 0;
+        for(int i = 0; i < c->m_mods; i++)
+        {
+            c->m_module[i].Render(b);
+            buf[0] += (short)b[0];
+            buf[1] += (short)b[1];
+        }
+        buf += 2;
+    }
+}
+
+void playSynthF32(void *userdata, uint8_t *stream, size_t length)
+{
+    CSMFPlay *c = reinterpret_cast<CSMFPlay *>(userdata);
+    DWORD len = static_cast<DWORD>(length / 8);
+    float *buf = reinterpret_cast<float*>(stream);
+    INT32 b[2];
+
+    for(DWORD q = 0; q < len; q++)
+    {
+        buf[0] = buf[1] = 0;
+        for(int i = 0; i < c->m_mods; i++)
+        {
+            c->m_module[i].Render(b);
+            buf[0] += (float)b[0] / 0x7fff;
+            buf[1] += (float)b[1] / 0x7fff;
+        }
+        buf += 2;
+    }
+}
+
 
 void CSMFPlay::initSequencerInterface()
 {
@@ -157,7 +197,7 @@ void CSMFPlay::initSequencerInterface()
     seq->rt_pitchBend = rtPitchBend;
     seq->rt_systemExclusive = rtSysEx;
 
-    seq->onPcmRender = playSynth;
+    seq->onPcmRender = playSynthF32;
     seq->onPcmRender_userData = this;
 
     seq->pcmSampleRate = static_cast<uint32_t>(m_rate);

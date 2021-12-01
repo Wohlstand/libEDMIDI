@@ -67,7 +67,40 @@ void CSMFPlay::SetLoop(bool enabled)
     m_sequencer->setLoopEnabled(enabled);
 }
 
+namespace dsa
+{
+extern void playSynth(void *userdata, uint8_t *stream, size_t length);
+extern void playSynthS16(void *userdata, uint8_t *stream, size_t length);
+extern void playSynthF32(void *userdata, uint8_t *stream, size_t length);
+}
+
 DWORD CSMFPlay::Render(int *buf, DWORD length)
 {
+    if(m_sequencerInterface->onPcmRender != playSynth)
+    {
+        m_sequencerInterface->onPcmRender = playSynth;
+        m_sequencerInterface->pcmFrameSize = 2 /*channels*/ * 4 /*size of one sample*/;
+    }
+
     return DWORD(m_sequencer->playStream(reinterpret_cast<uint8_t *>(buf), static_cast<size_t>(length * 8)));
+}
+
+int CSMFPlay::RenderS16(short *buf, DWORD length)
+{
+    if(m_sequencerInterface->onPcmRender != playSynthS16)
+    {
+        m_sequencerInterface->onPcmRender = playSynthS16;
+        m_sequencerInterface->pcmFrameSize = 2 /*channels*/ * 2 /*size of one sample*/;
+    }
+    return m_sequencer->playStream(reinterpret_cast<uint8_t *>(buf), static_cast<size_t>(length * 4));
+}
+
+int CSMFPlay::RenderF32(float *buf, DWORD length)
+{
+    if(m_sequencerInterface->onPcmRender != playSynthF32)
+    {
+        m_sequencerInterface->onPcmRender = playSynthF32;
+        m_sequencerInterface->pcmFrameSize = 2 /*channels*/ * 4 /*size of one sample*/;
+    }
+    return m_sequencer->playStream(reinterpret_cast<uint8_t *>(buf), static_cast<size_t>(length * 8));
 }

@@ -18,6 +18,8 @@ class CSMFPlay
     friend CMIDIModule &getModule(void *userdata, uint8_t channel);
     friend CMIDIModule &getModule2(void *userdata, uint8_t channel);
     friend void playSynth(void *userdata, uint8_t *stream, size_t length);
+    friend void playSynthS16(void *userdata, uint8_t *stream, size_t length);
+    friend void playSynthF32(void *userdata, uint8_t *stream, size_t length);
     CMIDIModule m_module[16];
 
     int m_mods;
@@ -35,6 +37,9 @@ public:
     bool Open(char *filename);
     bool Load(const void *buf, int size);
     DWORD Render(int *buf, DWORD length);
+    int RenderS16(short *buf, DWORD length);
+    int RenderF32(float *buf, DWORD length);
+
     void Start(bool reset = true);
 
     void SetLoop(bool enabled);

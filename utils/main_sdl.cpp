@@ -4,17 +4,12 @@
 #include <stdlib.h>
 #include "CSMFPlay.hpp"
 
-enum { nch = 2 };
-enum { buffer_size = 4096 };
-static int buf[buffer_size * nch];
-
 /* variable declarations */
 static Uint32 is_playing = 0; /* remaining length of the sample we have to play */
 
 struct MidPlayInstance
 {
     dsa::CSMFPlay *p;
-    int buf[buffer_size * nch];
 };
 
 /*
@@ -26,25 +21,18 @@ struct MidPlayInstance
 void my_audio_callback(void *midi_player, Uint8 *stream, int len)
 {
     MidPlayInstance *mp = (MidPlayInstance*)midi_player;
-    int i = 0;
-    int count = len / sizeof(short);
-    short* dest = (short*)stream;
-    DWORD got = mp->p->Render(buf, (count >> 1));
+    int count = len / sizeof(float);
+    float* dest = (float*)stream;
+    DWORD got = mp->p->RenderF32(dest, (count >> 1));
     if(got == 0)
         is_playing = 0;
-    for(i = 0; i < count; i += 2)
-    {
-        *(dest++) = buf[i];
-        *(dest++) = buf[i + 1];
-    }
 }
 
-static volatile int done = 0 ;
+//static volatile int done = 0 ;
 
 int main(int argc, char *argv[])
 {
     static SDL_AudioSpec            spec; /* the specs of our piece of music */
-    int b  = 0 ,c , song = 0 ;
     MidPlayInstance mp;
     mp.p = new dsa::CSMFPlay(44100, 8);
 
@@ -69,9 +57,9 @@ int main(int argc, char *argv[])
 
     memset(&spec, 0, sizeof(SDL_AudioSpec));
     spec.freq = 44100;
-    spec.format = AUDIO_S16SYS;
+    spec.format = AUDIO_F32SYS;
     spec.channels = 2;
-    spec.samples = buffer_size;
+    spec.samples = 4096;
 
     /* set the callback function */
     spec.callback = my_audio_callback;
