@@ -8,7 +8,10 @@
 
 using namespace dsa;
 
-CMIDIModule::CMIDIModule() : m_device(NULL) {}
+CMIDIModule::CMIDIModule() : m_device(NULL),
+    m_used_channels(16, ChannelList(128)),
+    m_off_channels(128)
+{}
 CMIDIModule::~CMIDIModule() {}
 
 RESULT CMIDIModule::Reset()
@@ -67,9 +70,9 @@ void CMIDIModule::Panpot(BYTE midi_ch, bool is_fine, BYTE data)
     if(!is_fine)
     {
         m_pan[midi_ch] = data;
-        std::deque<KeyInfo>::iterator it;
+        ChannelList::iterator it;
         for(it = m_used_channels[midi_ch].begin(); it != m_used_channels[midi_ch].end(); it++)
-            m_device->SetPan((*it).dev_ch, m_pan[midi_ch]);
+            m_device->SetPan(it->value.dev_ch, m_pan[midi_ch]);
     }
 }
 
@@ -86,9 +89,10 @@ void CMIDIModule::UpdatePitchBend(BYTE midi_ch)
         m_bend_coarse[midi_ch] = 0;
         m_bend_fine[midi_ch] = 0;
     }
-    std::deque<KeyInfo>::iterator it;
+
+    ChannelList::iterator it;
     for(it = m_used_channels[midi_ch].begin(); it != m_used_channels[midi_ch].end(); it++)
-        m_device->SetBend((*it).dev_ch, m_bend_coarse[midi_ch], m_bend_fine[midi_ch]);
+        m_device->SetBend(it->value.dev_ch, m_bend_coarse[midi_ch], m_bend_fine[midi_ch]);
 }
 
 void CMIDIModule::PitchBend(BYTE midi_ch, BYTE msb, BYTE lsb)
@@ -107,7 +111,6 @@ void CMIDIModule::ChannelPressure(BYTE midi_ch, BYTE velo)
 
 void CMIDIModule::NoteOn(BYTE midi_ch, BYTE note, BYTE velo)
 {
-
     if(m_drum[midi_ch])
     {
         m_device->PercSetVelocity(note, velo);
@@ -126,7 +129,7 @@ void CMIDIModule::NoteOn(BYTE midi_ch, BYTE note, BYTE velo)
         {
             if(m_used_channels[i].size() > 1)
             {
-                ki = m_used_channels[i].front();
+                ki = m_used_channels[i].front().value;
                 m_device->KeyOff(ki.dev_ch);
                 m_keyon_table[i][ki.note] = -1;
                 m_used_channels[i].pop_front();
@@ -139,7 +142,7 @@ void CMIDIModule::NoteOn(BYTE midi_ch, BYTE note, BYTE velo)
             {
                 if(!m_used_channels[i].empty())
                 {
-                    ki = m_used_channels[i].front();
+                    ki = m_used_channels[i].front().value;
                     m_device->KeyOff(ki.dev_ch);
                     m_keyon_table[i][ki.note] = -1;
                     m_used_channels[i].pop_front();
@@ -151,12 +154,12 @@ void CMIDIModule::NoteOn(BYTE midi_ch, BYTE note, BYTE velo)
     }
     else     // キーオフ中のチャンネルがあるときはそれを利用
     {
-        ki = m_off_channels.front();
+        ki = m_off_channels.front().value;
         m_off_channels.pop_front();
-        std::deque<KeyInfo>::iterator it;
+        ChannelList::iterator it;
         for(it = m_used_channels[ki.midi_ch].begin(); it != m_used_channels[ki.midi_ch].end(); it++)
         {
-            if((*it).dev_ch == ki.dev_ch)
+            if(it->value.dev_ch == ki.dev_ch)
             {
                 m_used_channels[ki.midi_ch].erase(it);
                 break;
@@ -176,9 +179,8 @@ void CMIDIModule::NoteOn(BYTE midi_ch, BYTE note, BYTE velo)
     m_used_channels[midi_ch].push_back(ki);
 }
 
-void CMIDIModule::NoteOff(BYTE midi_ch, BYTE note, BYTE velo)
+void CMIDIModule::NoteOff(BYTE midi_ch, BYTE note, BYTE /*velo*/)
 {
-
     if(m_drum[midi_ch])
         m_device->PercKeyOff(note);
 
@@ -186,7 +188,7 @@ void CMIDIModule::NoteOff(BYTE midi_ch, BYTE note, BYTE velo)
     if(dev_ch < 0) return;
     m_device->KeyOff(dev_ch);
     m_keyon_table[midi_ch][note] = -1;
-    std::deque<KeyInfo>::iterator it;
+    ChannelList::iterator it;
     KeyInfo ki;
     ki.dev_ch = dev_ch;
     ki.midi_ch = midi_ch;
@@ -204,9 +206,9 @@ void CMIDIModule::MainVolume(BYTE midi_ch, bool is_fine, BYTE data)
         return;
     }
 
-    std::deque<KeyInfo>::iterator it;
+    ChannelList::iterator it;
     for(it = m_used_channels[midi_ch].begin(); it != m_used_channels[midi_ch].end(); it++)
-        m_device->SetVolume((*it).dev_ch, data);
+        m_device->SetVolume(it->value.dev_ch, data);
 }
 
 void CMIDIModule::Volume7(BYTE midi_ch, bool is_fine, BYTE data)

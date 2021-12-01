@@ -1,10 +1,11 @@
 #ifndef __MIDI_MODULE_HPP__
 #define __MIDI_MODULE_HPP__
 
-#include <deque>
+#include <vector>
 #include <cstddef>
 #include <stdint.h>
 #include "ISoundDevice.hpp"
+#include "structures/pl_list.hpp"
 
 namespace dsa {
 
@@ -28,10 +29,12 @@ private:
   int m_expression[16];
   // そのキーを発音しているチャンネル番号を格納する配列
   int m_keyon_table[16][128];
+
+  typedef pl_list<KeyInfo> ChannelList;
   // MIDIチャンネルで使用しているOPLLチャンネルの集合(発音順のキュー）
-  std::deque<KeyInfo> m_used_channels[16];
+  std::vector<ChannelList> m_used_channels;
   // キーオフしているOPLLチャンネルの集合
-  std::deque<KeyInfo> m_off_channels;
+  ChannelList m_off_channels;
   // The current entry value of RPN/NRPN
   // NRPN=1, RPN=0;
   int m_entry_mode;
