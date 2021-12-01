@@ -24,6 +24,8 @@ private:
   int m_pan[16];
   int m_bend[16];
   int m_drum[16];
+  int m_volume7[16];
+  int m_expression[16];
   // そのキーを発音しているチャンネル番号を格納する配列
   int m_keyon_table[16][128];
   // MIDIチャンネルで使用しているOPLLチャンネルの集合(発音順のキュー）
@@ -47,6 +49,8 @@ protected:
   virtual void DataIncrement(BYTE midi_ch, BYTE data);
   virtual void DataDecrement(BYTE midi_ch, BYTE data);
   virtual void MainVolume(BYTE midi_ch, bool is_fine, BYTE data);
+  virtual void Volume7(BYTE midi_ch, bool is_fine, BYTE data);
+  virtual void Expression(BYTE midi_ch, bool is_fine, BYTE data);
   virtual void NRPN(BYTE midi_ch, bool is_fine, BYTE data);
   virtual void RPN(BYTE midi_ch, bool is_fine, BYTE data);
   virtual void LoadRPN(BYTE midi_ch, WORD data);

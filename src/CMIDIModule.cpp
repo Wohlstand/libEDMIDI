@@ -26,7 +26,7 @@ RESULT CMIDIModule::Reset()
             m_program[i] = 3;
             m_bank_msb[i] = 0;
             m_bank_lsb[i] = 0;
-            m_volume[i] = 127;
+            m_volume[i] = 100;
             m_bend[i] = 0;
             m_bend_coarse[i] = 0;
             m_bend_fine[i] = 0;
@@ -34,6 +34,8 @@ RESULT CMIDIModule::Reset()
             m_pan[i] = 64;
             m_RPN[i] = m_NRPN[i] = 0;
             m_drum[i] = 0;
+            m_volume7[i] = 100;
+            m_expression[i] = 127;
             for(int j = 0; j < 128; j++)
                 m_keyon_table[i][j] = -1;
         }
@@ -194,7 +196,6 @@ void CMIDIModule::NoteOff(BYTE midi_ch, BYTE note, BYTE velo)
 
 void CMIDIModule::MainVolume(BYTE midi_ch, bool is_fine, BYTE data)
 {
-
     if(is_fine) return;
 
     if(m_drum[midi_ch])
@@ -206,6 +207,22 @@ void CMIDIModule::MainVolume(BYTE midi_ch, bool is_fine, BYTE data)
     std::deque<KeyInfo>::iterator it;
     for(it = m_used_channels[midi_ch].begin(); it != m_used_channels[midi_ch].end(); it++)
         m_device->SetVolume((*it).dev_ch, data);
+}
+
+void CMIDIModule::Volume7(BYTE midi_ch, bool is_fine, BYTE data)
+{
+    if(is_fine) return;
+    m_volume7[midi_ch] = data;
+    BYTE res = (BYTE)((int(m_expression[midi_ch]) * int(m_volume7[midi_ch])) / 127);
+    MainVolume(midi_ch, is_fine, res);
+}
+
+void CMIDIModule::Expression(BYTE midi_ch, bool is_fine, BYTE data)
+{
+    if(is_fine) return;
+    m_expression[midi_ch] = data;
+    BYTE res = (BYTE)((int(m_expression[midi_ch]) * int(m_volume7[midi_ch])) / 127);
+    MainVolume(midi_ch, is_fine, res);
 }
 
 void CMIDIModule::LoadRPN(BYTE midi_ch, WORD data)
@@ -340,13 +357,15 @@ void CMIDIModule::ControlChange(BYTE midi_ch, BYTE msb, BYTE lsb)
             DataEntry(midi_ch, is_low, lsb);
             break;
         case 0x07:
-            MainVolume(midi_ch, is_low, lsb);
+            Volume7(midi_ch, is_low, lsb);
             break;
         //case 0x08: BalanceControl(midi_ch, is_low, lsb); break;
         case 0x0A:
             Panpot(midi_ch, is_low, lsb);
             break;
-        //case 0x11: Expression(midi_ch, is_low, lsb); break;
+        case 0x0B:
+            Expression(midi_ch, is_low, lsb);
+            break;
         default:
             break;
         }
