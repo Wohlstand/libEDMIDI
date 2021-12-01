@@ -498,6 +498,15 @@ RESULT CMIDIModule::SendChannelPressure(BYTE ch, BYTE velo)
     return SUCCESS;
 }
 
+RESULT CMIDIModule::SendPanic()
+{
+    if(m_device == NULL)
+        return FAILURE;
+    for(int i = 0; i < 16; ++i)
+        SendControlChange(i, 0x7B, 0);
+    return SUCCESS;
+}
+
 bool CMIDIModule::IsDrum(BYTE ch)
 {
     return (m_drum[ch] != 0);

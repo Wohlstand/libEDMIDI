@@ -75,6 +75,7 @@ public:
   RESULT SendControlChange(BYTE ch, BYTE msb, BYTE lsb);
   RESULT SendPitchBend(BYTE ch, BYTE msb, BYTE lsb);
   RESULT SendChannelPressure(BYTE ch, BYTE velo);
+  RESULT SendPanic();
 
   bool   IsDrum(BYTE ch);
 
