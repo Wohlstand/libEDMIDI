@@ -368,16 +368,6 @@ void CMIDIModule::ControlChange(BYTE midi_ch, BYTE msb, BYTE lsb)
         case 0x0B:
             Expression(midi_ch, is_low, lsb);
             break;
-        case 0x79: // Reset all controllers
-            break;
-        case 0x78: // All sounds off
-            for(int i = 0; i < 127; ++i)
-                NoteOff(midi_ch, i, 0);
-            break;
-        case 0x7B: // All notes off
-            for(int i = 0; i < 127; ++i)
-                NoteOff(midi_ch, i, 0);
-            break;
         default:
             break;
         }
@@ -405,6 +395,16 @@ void CMIDIModule::ControlChange(BYTE midi_ch, BYTE msb, BYTE lsb)
             break;
         case 0x65:
             RPN(midi_ch, 1, lsb);
+            break;
+        case 0x79: // Reset all controllers
+            break;
+        case 0x78: // All sounds off
+            for(int i = 0; i < 127; ++i)
+                NoteOff(midi_ch, i, 0);
+            break;
+        case 0x7B: // All notes off
+            for(int i = 0; i < 127; ++i)
+                NoteOff(midi_ch, i, 0);
             break;
         default:
             break;
