@@ -43,28 +43,166 @@ CSMFPlay::~CSMFPlay()
 
 bool CSMFPlay::Load(const void *buf, int size)
 {
-    return m_sequencer->loadMIDI(buf, size);
+    bool ret = m_sequencer->loadMIDI(buf, size);
+    Reset();
+    return ret;
 }
 
-bool CSMFPlay::Open(char *filename)
+bool CSMFPlay::Open(const char *filename)
 {
-    return m_sequencer->loadMIDI(filename);
+    bool ret = m_sequencer->loadMIDI(filename);
+    Reset();
+    return ret;
 }
 
 void CSMFPlay::Start(bool reset)
 {
     if(reset)
-    {
-        for(int i = 0; i < m_mods; i++)
-            m_module[i].Reset();
-    }
+        Reset();
+    m_sequencer->rewind();
+}
 
-    m_sequencer->seek(0, 0);
+void CSMFPlay::Reset()
+{
+    for(int i = 0; i < m_mods; i++)
+        m_module[i].Reset();
+}
+
+void CSMFPlay::Rewind()
+{
+    m_sequencer->rewind();
+}
+
+void CSMFPlay::Panic()
+{
+    for(int i = 0; i < m_mods; i++)
+        m_module[i].SendPanic();
+}
+
+void CSMFPlay::Seek(double seconds)
+{
+    m_sequencer->seek(seconds, 1.0);
+}
+
+double CSMFPlay::Tell()
+{
+    return m_sequencer->tell();
+}
+
+double CSMFPlay::Duration()
+{
+    return m_sequencer->timeLength();
+}
+
+double CSMFPlay::loopStart()
+{
+    return m_sequencer->getLoopStart();
+}
+
+double CSMFPlay::loopEnd()
+{
+    return m_sequencer->getLoopEnd();
 }
 
 void CSMFPlay::SetLoop(bool enabled)
 {
     m_sequencer->setLoopEnabled(enabled);
+}
+
+bool CSMFPlay::GetLoop()
+{
+    return m_sequencer->getLoopEnabled();
+}
+
+bool CSMFPlay::SeqEof()
+{
+    return m_sequencer->positionAtEnd();
+}
+
+void CSMFPlay::setTempo(double tempo)
+{
+    m_sequencer->setTempo(tempo);
+}
+
+double CSMFPlay::getTempo()
+{
+    return m_sequencer->getTempoMultiplier();
+}
+
+int CSMFPlay::tracksCount()
+{
+    return (int)m_sequencer->getTrackCount();
+}
+
+int CSMFPlay::setTrackEnabled(int track, bool en)
+{
+    return (int)m_sequencer->setTrackEnabled(track, en);
+}
+
+int CSMFPlay::setChannelEnabled(int chan, bool en)
+{
+    return (int)m_sequencer->setChannelEnabled(chan, en);
+}
+
+void CSMFPlay::setTriggerHandler(EDMIDI_TriggerHandler handler, void *userData)
+{
+    m_sequencer->setTriggerHandler(handler, userData);
+}
+
+const std::string &CSMFPlay::getMusicTitle()
+{
+    return m_sequencer->getMusicTitle();
+}
+
+const std::string &CSMFPlay::getMusicCopyright()
+{
+    return m_sequencer->getMusicCopyright();
+}
+
+const std::vector<std::string> &CSMFPlay::getTrackTitles()
+{
+    return m_sequencer->getTrackTitles();
+}
+
+size_t CSMFPlay::getMarkersCount()
+{
+    return m_sequencer->getMarkers().size();
+}
+
+EdMidi_MarkerEntry CSMFPlay::getMarker(size_t index)
+{
+    struct EdMidi_MarkerEntry marker;
+    const std::vector<MidiSequencer::MIDI_MarkerEntry> &markers = m_sequencer->getMarkers();
+    if(index >= markers.size())
+    {
+        marker.label = "INVALID";
+        marker.pos_time = 0.0;
+        marker.pos_ticks = 0;
+        return marker;
+    }
+
+    const MidiSequencer::MIDI_MarkerEntry &mk = markers[index];
+    marker.label = mk.label.c_str();
+    marker.pos_time = mk.pos_time;
+    marker.pos_ticks = (unsigned long)mk.pos_ticks;
+
+    return marker;
+}
+
+void CSMFPlay::setDebugMessageHook(EDMIDI_DebugMessageHook debugMessageHook, void *userData)
+{
+    m_sequencerInterface->onDebugMessage = debugMessageHook;
+    m_sequencerInterface->onDebugMessage_userData = userData;
+}
+
+const std::string &CSMFPlay::getErrorString() const
+{
+    return m_error;
+}
+
+void CSMFPlay::setErrorString(const std::string &err)
+{
+    m_error = err;
 }
 
 namespace dsa

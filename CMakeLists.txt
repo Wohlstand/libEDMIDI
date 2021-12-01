@@ -15,6 +15,7 @@ set(EMIDI_SRC
     src/COpllDevice.cpp
     src/CSMFPlay.cpp
     src/CMIDISequencer.cpp
+    src/emu_de_midi.cpp
 )
 
 if(WIN32)
@@ -24,6 +25,7 @@ else()
 endif()
 
 add_executable(emidi ${EMIDI_SRC} ${EMIDI_EXE_SRC})
+target_include_directories(emidi PUBLIC include)
 target_include_directories(emidi PRIVATE src)
 
 if(WIN32)
