@@ -81,7 +81,7 @@ static BYTE perc_table[128] =
 };
 
 COpllDevice::COpllDevice(DWORD rate, UINT nch) : ISoundDevice(),
-    m_rbuf(2, RBuf(20480))
+    m_rbuf(2, RBuf(8200))
 {
 
   if(nch==2) 
@@ -181,8 +181,10 @@ void COpllDevice::_WriteReg(BYTE reg, BYTE val, INT pan) {
     OPLL_writeReg(m_opll[pan], reg, val);
     m_reg_cache[pan][reg] = val;
   
+    if(m_rbuf[pan].size() > 8185)
+        m_rbuf[pan].pop_front();// Clean-up the fill buffer from off the junk
     // At least one calc() method must be invoked between two sequence of writeReg().
-    if(m_rbuf[pan].size()<20480) {
+    if(m_rbuf[pan].size()<8192) {
       m_rbuf[pan].push_back( OPLL_calc(m_opll[pan]) );
     } else {
       throw RuntimeException("Buffer Overflow",__FILE__,__LINE__);

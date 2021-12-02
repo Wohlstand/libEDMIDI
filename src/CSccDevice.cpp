@@ -74,7 +74,7 @@ void CSccDevice::_CalcEnvelope(void) {
 }
 
 CSccDevice::CSccDevice(DWORD rate, UINT nch): ISoundDevice(),
-    m_rbuf(2, RBuf(10960))
+    m_rbuf(2, RBuf(8200))
 {
 
   if(nch==2) m_nch = 2; else m_nch = 1;
@@ -171,6 +171,10 @@ void CSccDevice::_WriteReg(BYTE reg, BYTE val, INT pan) {
   if(m_reg_cache[pan][reg]!=val) {
     SCC_writeReg(m_scc[pan], reg, val);
     m_reg_cache[pan][reg] = val;  
+
+    if(m_rbuf[pan].size() > 8185)
+        m_rbuf[pan].pop_front();// Clean-up the fill buffer from off the junk
+
     if(m_rbuf[pan].size()<8192) {
       m_rbuf[pan].push_back(SCC_calc(m_scc[pan]));
       if (!pan) _CalcEnvelope();
