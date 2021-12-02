@@ -58,6 +58,7 @@ public:
     double loopEnd();
 
     void SetLoop(bool enabled);
+    void SetLoopsNumber(int loops);
     bool GetLoop();
     bool SeqEof();
 

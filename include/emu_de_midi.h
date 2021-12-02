@@ -162,6 +162,9 @@ extern EDMIDI_DECLSPEC const char *edmidi_errorInfo(struct EDMIDIPlayer *device)
  */
 extern EDMIDI_DECLSPEC struct EDMIDIPlayer *edmidi_init(long sample_rate);
 
+
+extern EDMIDI_DECLSPEC struct EDMIDIPlayer *edmidi_initEx(long sample_rate, int modules);
+
 /**
  * @brief Close and delete Emu De Midi device
  * @param device Instance of the library
@@ -425,6 +428,27 @@ typedef void (*EDMIDI_DebugMessageHook)(void *userdata, const char *fmt, ...);
  * @param userData Pointer to user data which will be passed through the callback.
  */
 extern EDMIDI_DECLSPEC void edmidi_setDebugMessageHook(struct EDMIDIPlayer *device, EDMIDI_DebugMessageHook debugMessageHook, void *userData);
+
+
+
+/* ======== Setup ======== */
+
+/**
+ * @brief Enable or disable built-in loop (built-in loop supports 'loopStart' and 'loopEnd' tags to loop specific part)
+ * @param device Instance of the library
+ * @param loopEn 0 - disabled, 1 - enabled
+ */
+extern EDMIDI_DECLSPEC void edmidi_setLoopEnabled(struct EDMIDIPlayer *device, int loopEn);
+
+/**
+ * @brief Set how many times loop will be played
+ *
+ * Note: The song will be played once if loop has been disabled with no matter which value of loop count was set
+ *
+ * @param device Instance of the library
+ * @param loopCount Number of loops or -1 to loop infinitely
+ */
+extern EDMIDI_DECLSPEC void edmidi_setLoopCount(struct EDMIDIPlayer *device, int loopCount);
 
 
 #ifdef __cplusplus

@@ -78,8 +78,25 @@ EDMIDI_EXPORT const char *edmidi_errorInfo(struct EDMIDIPlayer *device)
 
 EDMIDI_EXPORT struct EDMIDIPlayer *edmidi_init(long sample_rate)
 {
+    return edmidi_initEx(sample_rate, 8);
+}
+
+EDMIDIPlayer *edmidi_initEx(long sample_rate, int modules)
+{
     EDMIDIPlayer *midi_device;
     memset(EDMIDI_ErrorString, 0, sizeof(EDMIDI_ErrorString));
+
+    if(modules < 2)
+    {
+        sprintf(EDMIDI_ErrorString, "Can't initialize ADLMIDI: modules less than minimum allowed (2)!");
+        return NULL;
+    }
+
+    if(modules & 1)
+    {
+        sprintf(EDMIDI_ErrorString, "Can't initialize ADLMIDI: modules number must be an even number!");
+        return NULL;
+    }
 
     midi_device = (EDMIDIPlayer *)malloc(sizeof(EDMIDIPlayer));
     if(!midi_device)
@@ -88,7 +105,7 @@ EDMIDI_EXPORT struct EDMIDIPlayer *edmidi_init(long sample_rate)
         return NULL;
     }
 
-    MidiPlayer *player = new(std::nothrow) MidiPlayer(static_cast<unsigned long>(sample_rate), 8);
+    MidiPlayer *player = new(std::nothrow) MidiPlayer(static_cast<unsigned long>(sample_rate), modules);
     if(!player)
     {
         free(midi_device);
@@ -369,4 +386,22 @@ EDMIDI_EXPORT void edmidi_setDebugMessageHook(struct EDMIDIPlayer *device, EDMID
     MidiPlayer *play = GET_MIDI_PLAYER(device);
     assert(play);
     play->setDebugMessageHook(debugMessageHook, userData);
+}
+
+EDMIDI_EXPORT void edmidi_setLoopEnabled(EDMIDIPlayer *device, int loopEn)
+{
+    if(!device)
+        return;
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    play->SetLoop(loopEn != 0);
+}
+
+EDMIDI_EXPORT void edmidi_setLoopCount(EDMIDIPlayer *device, int loopCount)
+{
+    if(!device)
+        return;
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    play->SetLoopsNumber(loopCount);
 }

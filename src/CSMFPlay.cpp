@@ -109,6 +109,11 @@ void CSMFPlay::SetLoop(bool enabled)
     m_sequencer->setLoopEnabled(enabled);
 }
 
+void CSMFPlay::SetLoopsNumber(int loops)
+{
+    m_sequencer->setLoopsCount(loops);
+}
+
 bool CSMFPlay::GetLoop()
 {
     return m_sequencer->getLoopEnabled();
