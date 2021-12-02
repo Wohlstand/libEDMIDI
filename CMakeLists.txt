@@ -18,11 +18,7 @@ set(EMIDI_SRC
     src/emu_de_midi.cpp
 )
 
-if(WIN32)
-    set(EMIDI_EXE_SRC utils/main_sdl.cpp)
-else()
-    set(EMIDI_EXE_SRC utils/main_sdl.cpp)
-endif()
+set(EMIDI_EXE_SRC utils/main_sdl.c)
 
 add_executable(emidi ${EMIDI_SRC} ${EMIDI_EXE_SRC})
 target_include_directories(emidi PUBLIC include)
