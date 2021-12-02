@@ -471,7 +471,7 @@ extern EDMIDI_DECLSPEC int  edmidi_playF32(struct EDMIDIPlayer *device, int samp
  * @param format Destination PCM format format context
  * @return Count of given samples, otherwise, 0 or when catching an error while playing
  */
-extern EDMIDI_DECLSPEC int  adl_playFormat(struct EDMIDIPlayer *device, int sampleCount, EDMIDI_UInt8 *left, EDMIDI_UInt8 *right, const struct EDMIDI_AudioFormat *format);
+extern EDMIDI_DECLSPEC int  edmidi_playFormat(struct EDMIDIPlayer *device, int sampleCount, EDMIDI_UInt8 *left, EDMIDI_UInt8 *right, const struct EDMIDI_AudioFormat *format);
 
 
 

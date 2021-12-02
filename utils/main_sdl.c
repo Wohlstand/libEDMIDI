@@ -313,10 +313,10 @@ static void my_audio_callback(void *midi_player, Uint8 *stream, int len)
     int count = len / s_audioFormat.containerSize;
 
     /* Take some samples from the EDMIDI */
-    int got = adl_playFormat(mp, count,
-                             stream,
-                             stream + s_audioFormat.containerSize,
-                             &s_audioFormat);
+    int got = edmidi_playFormat(mp, count,
+                                stream,
+                                stream + s_audioFormat.containerSize,
+                                &s_audioFormat);
 
     if(got == 0)
     {
