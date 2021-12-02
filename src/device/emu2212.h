@@ -1,6 +1,22 @@
 #ifndef _EMU2212_H_
 #define _EMU2212_H_
 
+/* Rename all public symbols to avoid possible conflicts */
+#define SCC_new EDMIDI_SCC_new
+#define SCC_reset EDMIDI_SCC_reset
+#define SCC_set_rate EDMIDI_SCC_set_rate
+#define SCC_set_quality EDMIDI_SCC_set_quality
+#define SCC_set_type EDMIDI_SCC_set_type
+#define SCC_delete EDMIDI_SCC_delete
+#define SCC_calc EDMIDI_SCC_calc
+#define SCC_calc_stereo EDMIDI_SCC_calc_stereo
+#define SCC_write EDMIDI_SCC_write
+#define SCC_writeReg EDMIDI_SCC_writeReg
+#define SCC_read EDMIDI_SCC_read
+#define SCC_setMask EDMIDI_SCC_setMask
+#define SCC_toggleMask EDMIDI_SCC_toggleMask
+/* ------------------------------------------------------ */
+
 #ifdef EMU2212_DLL_EXPORTS
   #define EMU2212_API __declspec(dllexport)
 #elif defined(EMU2212_DLL_IMPORTS)

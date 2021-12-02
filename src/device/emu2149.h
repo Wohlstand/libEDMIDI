@@ -3,6 +3,23 @@
 #define _EMU2149_H_
 #include "emutypes.h"
 
+/* Rename all public symbols to avoid possible conflicts */
+#define PSG_set_quality EDMIDI_PSG_set_quality
+#define PSG_set_rate    EDMIDI_PSG_set_rate
+#define PSG_new         EDMIDI_PSG_new
+#define PSG_reset       EDMIDI_PSG_reset
+#define PSG_delete      EDMIDI_PSG_delete
+#define PSG_writeReg    EDMIDI_PSG_writeReg
+#define PSG_writeIO     EDMIDI_PSG_writeIO
+#define PSG_readReg     EDMIDI_PSG_readReg
+#define PSG_readIO      EDMIDI_PSG_readIO
+#define PSG_calc        EDMIDI_PSG_calc
+#define PSG_setVolumeMode  EDMIDI_PSG_setVolumeMode
+#define PSG_setMask     EDMIDI_PSG_setMask
+#define PSG_toggleMask  EDMIDI_PSG_toggleMask
+/* ------------------------------------------------------ */
+
+
 #ifdef EMU2149_DLL_EXPORTS
 #define EMU2149_API __declspec(dllexport)
 #elif  EMU2149_DLL_IMPORTS

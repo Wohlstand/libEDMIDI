@@ -3,6 +3,35 @@
 
 #include <stdint.h>
 
+/* Rename all public symbols to avoid possible conflicts */
+#define OPLL_RateConv_new EDMIDI_OPLL_RateConv_new
+#define OPLL_RateConv_reset EDMIDI_OPLL_RateConv_reset
+#define OPLL_RateConv_putData EDMIDI_OPLL_RateConv_putData
+#define OPLL_RateConv_getData EDMIDI_OPLL_RateConv_getData
+#define OPLL_RateConv_delete EDMIDI_OPLL_RateConv_delete
+#define OPLL_new EDMIDI_OPLL_new
+#define OPLL_delete EDMIDI_OPLL_delete
+
+#define OPLL_reset EDMIDI_OPLL_reset
+#define OPLL_resetPatch EDMIDI_OPLL_resetPatch
+#define OPLL_setRate EDMIDI_OPLL_setRate
+#define OPLL_setQuality EDMIDI_OPLL_setQuality
+#define OPLL_setPan EDMIDI_OPLL_setPan
+#define OPLL_setChipMode EDMIDI_OPLL_setChipMode
+#define OPLL_writeIO EDMIDI_OPLL_writeIO
+#define OPLL_writeReg EDMIDI_OPLL_writeReg
+#define OPLL_calc EDMIDI_OPLL_calc
+#define OPLL_calcStereo EDMIDI_OPLL_calcStereo
+#define OPLL_setPatch EDMIDI_OPLL_setPatch
+#define OPLL_copyPatch EDMIDI_OPLL_copyPatch
+#define OPLL_forceRefresh EDMIDI_OPLL_forceRefresh
+#define OPLL_dumpToPatch EDMIDI_OPLL_dumpToPatch
+#define OPLL_patchToDump EDMIDI_OPLL_patchToDump
+#define OPLL_getDefaultPatch EDMIDI_OPLL_getDefaultPatch
+#define OPLL_setMask EDMIDI_OPLL_setMask
+#define OPLL_toggleMask EDMIDI_OPLL_toggleMask
+/* ------------------------------------------------------ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
