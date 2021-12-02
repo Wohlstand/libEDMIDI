@@ -56,7 +56,7 @@ RESULT CMIDIModule::Reset()
             ki.midi_ch = i;
             ki.dev_ch = i;
             ki.note = 0;
-            m_keyon_table[i][0] = 0;
+            m_keyon_table[i][0] = -1;
             m_off_channels.push_back(ki);
             m_used_channels[i].push_back(ki);
         }
