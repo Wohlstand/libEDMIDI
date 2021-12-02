@@ -196,6 +196,28 @@ void CMIDIModule::NoteOff(BYTE midi_ch, BYTE note, BYTE /*velo*/)
     m_off_channels.push_back(ki);
 }
 
+void CMIDIModule::AllNotesOff(BYTE ch)
+{
+    for(int i = 0; i < 127; ++i)
+    {
+        if(m_drum[ch])
+            m_device->PercKeyOff(i);
+
+        int dev_ch = m_keyon_table[ch][i];
+        if(dev_ch < 0)
+            continue;
+
+        m_device->KeyOff(dev_ch);
+        m_keyon_table[ch][i] = -1;
+        ChannelList::iterator it;
+        KeyInfo ki;
+        ki.dev_ch = dev_ch;
+        ki.midi_ch = ch;
+        ki.note = 0;
+        m_off_channels.push_back(ki);
+    }
+}
+
 void CMIDIModule::MainVolume(BYTE midi_ch, bool is_fine, BYTE data)
 {
     if(is_fine) return;
@@ -399,12 +421,10 @@ void CMIDIModule::ControlChange(BYTE midi_ch, BYTE msb, BYTE lsb)
         case 0x79: // Reset all controllers
             break;
         case 0x78: // All sounds off
-            for(int i = 0; i < 127; ++i)
-                NoteOff(midi_ch, i, 0);
+            AllNotesOff(midi_ch);
             break;
         case 0x7B: // All notes off
-            for(int i = 0; i < 127; ++i)
-                NoteOff(midi_ch, i, 0);
+            AllNotesOff(midi_ch);
             break;
         default:
             break;

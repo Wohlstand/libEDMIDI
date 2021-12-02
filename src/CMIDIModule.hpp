@@ -45,6 +45,7 @@ protected:
   virtual void ControlChange(BYTE ch, BYTE msb, BYTE lsb);
   virtual void NoteOn (BYTE ch,  BYTE note, BYTE velo);
   virtual void NoteOff(BYTE ch,  BYTE note, BYTE velo);
+  virtual void AllNotesOff(BYTE ch);
   virtual void UpdatePitchBend(BYTE ch);
   virtual void PitchBend(BYTE ch, BYTE msb, BYTE lsb);
   virtual void ChannelPressure(BYTE ch, BYTE velo);
