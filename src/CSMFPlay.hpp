@@ -42,9 +42,12 @@ public:
     bool Open(const char *filename);
     bool Load(const void *buf, int size);
 
-    DWORD Render(int *buf, DWORD length);
-    int RenderS16(short *buf, DWORD length);
-    int RenderF32(float *buf, DWORD length);
+    int Render(int *buf, size_t length);
+    int RenderS16(short *buf, size_t length);
+    int RenderF32(float *buf, size_t length);
+    int RenderFormat(int sampleCount,
+                     EDMIDI_UInt8 *left, EDMIDI_UInt8 *right,
+                     const EDMIDI_AudioFormat *format);
 
     void Start(bool reset = true);
     void Reset();

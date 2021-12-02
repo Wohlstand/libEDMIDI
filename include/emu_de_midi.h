@@ -116,6 +116,49 @@ extern EDMIDI_DECLSPEC const char *edmidi_linkedLibraryVersion();
 extern EDMIDI_DECLSPEC const EDMIDI_Version *edmidi_linkedVersion();
 
 
+
+/**
+ * @brief Sound output format
+ */
+enum EDMIDI_SampleType
+{
+    /*! signed PCM 16-bit */
+    EDMIDI_SampleType_S16 = 0,
+    /*! signed PCM 8-bit */
+    EDMIDI_SampleType_S8,
+    /*! float 32-bit */
+    EDMIDI_SampleType_F32,
+    /*! float 64-bit */
+    EDMIDI_SampleType_F64,
+    /*! signed PCM 24-bit */
+    EDMIDI_SampleType_S24,
+    /*! signed PCM 32-bit */
+    EDMIDI_SampleType_S32,
+    /*! unsigned PCM 8-bit */
+    EDMIDI_SampleType_U8,
+    /*! unsigned PCM 16-bit */
+    EDMIDI_SampleType_U16,
+    /*! unsigned PCM 24-bit */
+    EDMIDI_SampleType_U24,
+    /*! unsigned PCM 32-bit */
+    EDMIDI_SampleType_U32,
+    /*! Count of available sample format types */
+    EDMIDI_SampleType_Count
+};
+
+/**
+ * @brief Sound output format context
+ */
+struct EDMIDI_AudioFormat
+{
+    /*! type of sample */
+    enum EDMIDI_SampleType type;
+    /*! size in bytes of the storage type */
+    unsigned containerSize;
+    /*! distance in bytes between consecutive samples */
+    unsigned sampleOffset;
+};
+
 /**
  * @brief Instance of the library
  */
@@ -409,6 +452,26 @@ extern EDMIDI_DECLSPEC struct EdMidi_MarkerEntry edmidi_metaMarker(struct EDMIDI
  */
 extern EDMIDI_DECLSPEC int  edmidi_play(struct EDMIDIPlayer *device, int sampleCount, short *out);
 extern EDMIDI_DECLSPEC int  edmidi_playF32(struct EDMIDIPlayer *device, int sampleCount, float *out);
+
+/**
+ * @brief Generate PCM stereo audio output in sample format declared by given context and iterate MIDI timers
+ *
+ * Use this function when you are playing MIDI file loaded by `adl_openFile` or by `adl_openData`
+ * with using of built-in MIDI sequencer.
+ *
+ * Don't use count of frames, use instead count of samples. One frame is two samples.
+ * So, for example, if you want to take 10 frames, you must to request amount of 20 samples!
+ *
+ * Available when library is built with built-in MIDI Sequencer support.
+ *
+ * @param device Instance of the library
+ * @param sampleCount Count of samples (not frames!)
+ * @param left Left channel buffer output (Must be casted into bytes array)
+ * @param right Right channel buffer output (Must be casted into bytes array)
+ * @param format Destination PCM format format context
+ * @return Count of given samples, otherwise, 0 or when catching an error while playing
+ */
+extern EDMIDI_DECLSPEC int  adl_playFormat(struct EDMIDIPlayer *device, int sampleCount, EDMIDI_UInt8 *left, EDMIDI_UInt8 *right, const struct EDMIDI_AudioFormat *format);
 
 
 

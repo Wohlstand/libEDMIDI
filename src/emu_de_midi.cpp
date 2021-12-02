@@ -379,6 +379,17 @@ EDMIDI_EXPORT int edmidi_playF32(EDMIDIPlayer *device, int sampleCount, float *o
     return play->RenderF32(out, sampleCount >> 1);
 }
 
+EDMIDI_EXPORT int adl_playFormat(EDMIDIPlayer *device, int sampleCount,
+                                 EDMIDI_UInt8 *left, EDMIDI_UInt8 *right,
+                                 const EDMIDI_AudioFormat *format)
+{
+    if(!device)
+        return -1;
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    return play->RenderFormat(sampleCount, left, right, format);
+}
+
 EDMIDI_EXPORT void edmidi_setDebugMessageHook(struct EDMIDIPlayer *device, EDMIDI_DebugMessageHook debugMessageHook, void *userData)
 {
     if(!device)

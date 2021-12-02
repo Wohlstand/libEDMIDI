@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <limits.h>
+#include <assert.h>
 #include "CSMFPlay.hpp"
 #include "COpllDevice.hpp"
 #include "CSccDevice.hpp"
@@ -210,6 +211,7 @@ void CSMFPlay::setErrorString(const std::string &err)
     m_error = err;
 }
 
+
 namespace dsa
 {
 extern void playSynth(void *userdata, uint8_t *stream, size_t length);
@@ -217,7 +219,7 @@ extern void playSynthS16(void *userdata, uint8_t *stream, size_t length);
 extern void playSynthF32(void *userdata, uint8_t *stream, size_t length);
 }
 
-DWORD CSMFPlay::Render(int *buf, DWORD length)
+int CSMFPlay::Render(int *buf, size_t length)
 {
     if(m_sequencerInterface->onPcmRender != playSynth)
     {
@@ -225,10 +227,10 @@ DWORD CSMFPlay::Render(int *buf, DWORD length)
         m_sequencerInterface->pcmFrameSize = 2 /*channels*/ * 4 /*size of one sample*/;
     }
 
-    return DWORD(m_sequencer->playStream(reinterpret_cast<uint8_t *>(buf), static_cast<size_t>(length * 8)));
+    return m_sequencer->playStream(reinterpret_cast<uint8_t *>(buf), static_cast<size_t>(length * 8));
 }
 
-int CSMFPlay::RenderS16(short *buf, DWORD length)
+int CSMFPlay::RenderS16(short *buf, size_t length)
 {
     if(m_sequencerInterface->onPcmRender != playSynthS16)
     {
@@ -238,7 +240,7 @@ int CSMFPlay::RenderS16(short *buf, DWORD length)
     return m_sequencer->playStream(reinterpret_cast<uint8_t *>(buf), static_cast<size_t>(length * 4));
 }
 
-int CSMFPlay::RenderF32(float *buf, DWORD length)
+int CSMFPlay::RenderF32(float *buf, size_t length)
 {
     if(m_sequencerInterface->onPcmRender != playSynthF32)
     {
@@ -246,4 +248,229 @@ int CSMFPlay::RenderF32(float *buf, DWORD length)
         m_sequencerInterface->pcmFrameSize = 2 /*channels*/ * 4 /*size of one sample*/;
     }
     return m_sequencer->playStream(reinterpret_cast<uint8_t *>(buf), static_cast<size_t>(length * 8));
+}
+
+
+
+/*
+  Sample conversions to various formats
+*/
+template <class Real>
+inline Real adl_cvtReal(int32_t x)
+{
+    return static_cast<Real>(x) * (static_cast<Real>(1) / static_cast<Real>(INT16_MAX));
+}
+
+inline int32_t adl_cvtS16(int32_t x)
+{
+    x = (x < INT16_MIN) ? (INT16_MIN) : x;
+    x = (x > INT16_MAX) ? (INT16_MAX) : x;
+    return x;
+}
+
+inline int32_t adl_cvtS8(int32_t x)
+{
+    return adl_cvtS16(x) / 256;
+}
+inline int32_t adl_cvtS24(int32_t x)
+{
+    return adl_cvtS16(x) * 256;
+}
+inline int32_t adl_cvtS32(int32_t x)
+{
+    return adl_cvtS16(x) * 65536;
+}
+inline int32_t adl_cvtU16(int32_t x)
+{
+    return adl_cvtS16(x) - INT16_MIN;
+}
+inline int32_t adl_cvtU8(int32_t x)
+{
+    return (adl_cvtS16(x) / 256) - INT8_MIN;
+}
+inline int32_t adl_cvtU24(int32_t x)
+{
+    enum { int24_min = -(1 << 23) };
+    return adl_cvtS24(x) - int24_min;
+}
+inline int32_t adl_cvtU32(int32_t x)
+{
+    // unsigned operation because overflow on signed integers is undefined
+    return (uint32_t)adl_cvtS32(x) - (uint32_t)INT32_MIN;
+}
+
+template <class Dst>
+static void CopySamplesRaw(EDMIDI_UInt8 *dstLeft, EDMIDI_UInt8 *dstRight, const int32_t *src,
+                           size_t frameCount, unsigned sampleOffset)
+{
+    for(size_t i = 0; i < frameCount; ++i) {
+        *(Dst *)(dstLeft + (i * sampleOffset)) = src[2 * i];
+        *(Dst *)(dstRight + (i * sampleOffset)) = src[(2 * i) + 1];
+    }
+}
+
+template <class Dst, class Ret>
+static void CopySamplesTransformed(EDMIDI_UInt8 *dstLeft, EDMIDI_UInt8 *dstRight, const int32_t *src,
+                                   size_t frameCount, unsigned sampleOffset,
+                                   Ret(&transform)(int32_t))
+{
+    for(size_t i = 0; i < frameCount; ++i) {
+        *(Dst *)(dstLeft + (i * sampleOffset)) = static_cast<Dst>(transform(src[2 * i]));
+        *(Dst *)(dstRight + (i * sampleOffset)) = static_cast<Dst>(transform(src[(2 * i) + 1]));
+    }
+}
+
+static int SendStereoAudio(int        samples_requested,
+                           ssize_t    in_size,
+                           int32_t   *_in,
+                           ssize_t    out_pos,
+                           EDMIDI_UInt8 *left,
+                           EDMIDI_UInt8 *right,
+                           const EDMIDI_AudioFormat *format)
+{
+    if(!in_size)
+        return 0;
+    size_t outputOffset = static_cast<size_t>(out_pos);
+    size_t inSamples    = static_cast<size_t>(in_size * 2);
+    size_t maxSamples   = static_cast<size_t>(samples_requested) - outputOffset;
+    size_t toCopy       = std::min(maxSamples, inSamples);
+
+    EDMIDI_SampleType sampleType = format->type;
+    const unsigned containerSize = format->containerSize;
+    const unsigned sampleOffset = format->sampleOffset;
+
+    left  += (outputOffset / 2) * sampleOffset;
+    right += (outputOffset / 2) * sampleOffset;
+
+    typedef int32_t(&pfnConvert)(int32_t);
+    typedef float(&ffnConvert)(int32_t);
+    typedef double(&dfnConvert)(int32_t);
+
+    switch(sampleType) {
+    case EDMIDI_SampleType_S8:
+    case EDMIDI_SampleType_U8:
+    {
+        pfnConvert cvt = (sampleType == EDMIDI_SampleType_S8) ? adl_cvtS8 : adl_cvtU8;
+        switch(containerSize) {
+        case sizeof(int8_t):
+            CopySamplesTransformed<int8_t>(left, right, _in, toCopy / 2, sampleOffset, cvt);
+            break;
+        case sizeof(int16_t):
+            CopySamplesTransformed<int16_t>(left, right, _in, toCopy / 2, sampleOffset, cvt);
+            break;
+        case sizeof(int32_t):
+            CopySamplesTransformed<int32_t>(left, right, _in, toCopy / 2, sampleOffset, cvt);
+            break;
+        default:
+            return -1;
+        }
+        break;
+    }
+    case EDMIDI_SampleType_S16:
+    case EDMIDI_SampleType_U16:
+    {
+        pfnConvert cvt = (sampleType == EDMIDI_SampleType_S16) ? adl_cvtS16 : adl_cvtU16;
+        switch(containerSize) {
+        case sizeof(int16_t):
+            CopySamplesTransformed<int16_t>(left, right, _in, toCopy / 2, sampleOffset, cvt);
+            break;
+        case sizeof(int32_t):
+            CopySamplesRaw<int32_t>(left, right, _in, toCopy / 2, sampleOffset);
+            break;
+        default:
+            return -1;
+        }
+        break;
+    }
+    case EDMIDI_SampleType_S24:
+    case EDMIDI_SampleType_U24:
+    {
+        pfnConvert cvt = (sampleType == EDMIDI_SampleType_S24) ? adl_cvtS24 : adl_cvtU24;
+        switch(containerSize) {
+        case sizeof(int32_t):
+            CopySamplesTransformed<int32_t>(left, right, _in, toCopy / 2, sampleOffset, cvt);
+            break;
+        default:
+            return -1;
+        }
+        break;
+    }
+    case EDMIDI_SampleType_S32:
+    case EDMIDI_SampleType_U32:
+    {
+        pfnConvert cvt = (sampleType == EDMIDI_SampleType_S32) ? adl_cvtS32 : adl_cvtU32;
+        switch(containerSize) {
+        case sizeof(int32_t):
+            CopySamplesTransformed<int32_t>(left, right, _in, toCopy / 2, sampleOffset, cvt);
+            break;
+        default:
+            return -1;
+        }
+        break;
+    }
+    case EDMIDI_SampleType_F32:
+    {
+        if(containerSize != sizeof(float))
+            return -1;
+        ffnConvert cvt = adl_cvtReal<float>;
+        CopySamplesTransformed<float>(left, right, _in, toCopy / 2, sampleOffset, cvt);
+        break;
+    }
+    case EDMIDI_SampleType_F64:
+    {
+        if(containerSize != sizeof(double))
+            return -1;
+        dfnConvert cvt = adl_cvtReal<double>;
+        CopySamplesTransformed<double>(left, right, _in, toCopy / 2, sampleOffset, cvt);
+        break;
+    }
+    default:
+        return -1;
+    }
+
+    return 0;
+}
+
+
+int CSMFPlay::RenderFormat(int sampleCount,
+                           EDMIDI_UInt8 *out_left,
+                           EDMIDI_UInt8 *out_right,
+                           const EDMIDI_AudioFormat *format)
+{
+    int32_t buf[1024];
+    size_t doRead = 1024;
+    size_t doReadStereo = 512;
+    int left = sampleCount;
+    int gotten_len = 0;
+    int generated = 0;
+    int generatedSamples = 0;
+
+    sampleCount -= sampleCount % 2; //Avoid even sample requests
+
+    if(sampleCount < 0)
+        return 0;
+
+    if(m_sequencerInterface->onPcmRender != playSynth)
+    {
+        m_sequencerInterface->onPcmRender = playSynth;
+        m_sequencerInterface->pcmFrameSize = 2 /*channels*/ * 4 /*size of one sample*/;
+    }
+
+    while(left > 0)
+    {
+        doRead = left > 1024 ? 1024 : left;
+        doReadStereo = doRead / 2;
+        generated = m_sequencer->playStream(reinterpret_cast<uint8_t *>(buf), static_cast<size_t>(doReadStereo * 8));
+        assert(generated > 0);
+        generatedSamples = generated / 4;
+
+        /* Process it */
+        if(SendStereoAudio(sampleCount, generatedSamples, buf, gotten_len, out_left, out_right, format) == -1)
+            return 0;
+
+        left -= generatedSamples;
+        gotten_len += generatedSamples;
+    }
+
+    return gotten_len;
 }

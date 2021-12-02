@@ -12,6 +12,8 @@ static void my_audio_callback(void *midi_player, Uint8 *stream, int len);
 /* variable declarations */
 static SDL_bool s_is_playing = SDL_FALSE; /* remaining length of the sample we have to play */
 
+static struct EDMIDI_AudioFormat s_audioFormat;
+
 static void stop_playing(int sig)
 {
     (void)sig;
@@ -24,6 +26,34 @@ static void stop_playing(int sig)
 #else
 #define flushout(stream) fflush(stream)
 #endif
+
+const char* audio_format_to_str(int format)
+{
+    switch(format)
+    {
+    case AUDIO_S8:
+        return "S8";
+    case AUDIO_U8:
+        return "U8";
+    case AUDIO_S16MSB:
+        return "S16MSB";
+    case AUDIO_S16LSB:
+        return "S16LSB";
+    case AUDIO_U16LSB:
+        return "U16LSB";
+    case AUDIO_U16MSB:
+        return "U16MSB";
+    case AUDIO_S32MSB:
+        return "S32MSB";
+    case AUDIO_S32LSB:
+        return "S32LSB";
+    case AUDIO_F32MSB:
+        return "F32MSB";
+    case AUDIO_F32LSB:
+        return "F32LSB";
+    }
+    return "UNK";
+}
 
 static void debugPrint(void *userdata, const char *fmt, ...)
 {
@@ -84,6 +114,18 @@ int main(int argc, char **argv)
     SDL_memset(loopStartHMS, 0, 25);
     SDL_memset(loopEndHMS, 0, 25);
 
+
+    SDL_memset(&spec, 0, sizeof(SDL_AudioSpec));
+    spec.freq = 44100;
+    spec.format = AUDIO_F32;
+    spec.channels = 2;
+    spec.samples = 1024;
+
+    /* set the callback function */
+    spec.callback = my_audio_callback;
+    /* set ADLMIDI's descriptor as userdata to use it for sound generation */
+    spec.userdata = &midi_player;
+
     signal(SIGINT, stop_playing);
     signal(SIGTERM, stop_playing);
 
@@ -107,11 +149,79 @@ int main(int argc, char **argv)
 
     fprintf(stdout, " - Library version %s\n", edmidi_linkedLibraryVersion());
 
+    /* Initialize SDL.*/
+    if(SDL_Init(SDL_INIT_AUDIO) < 0)
+    {
+        fprintf(stderr, "Couldn't initialize SDL: %s\n", SDL_GetError());
+        flushout(stderr);
+        return 1;
+    }
+
+    /* Open the audio device */
+    if(SDL_OpenAudio(&spec, &obtained) < 0)
+    {
+        fprintf(stderr, "Couldn't open audio: %s\n", SDL_GetError());
+        flushout(stderr);
+        edmidi_close(midi_player);
+        SDL_Quit();
+        return 1;
+    }
+
+    fprintf(stdout, " - Audio output: format=%s, samples=%u, freq=%u, channels=%u\n",
+            audio_format_to_str(obtained.format),
+            obtained.samples,
+            obtained.freq,
+            obtained.channels);
+    flushout(stdout);
+
+    switch(obtained.format)
+    {
+    case AUDIO_S8:
+        s_audioFormat.type = EDMIDI_SampleType_S8;
+        s_audioFormat.containerSize = sizeof(int8_t);
+        s_audioFormat.sampleOffset = sizeof(int8_t) * 2;
+        break;
+    case AUDIO_U8:
+        s_audioFormat.type = EDMIDI_SampleType_U8;
+        s_audioFormat.containerSize = sizeof(uint8_t);
+        s_audioFormat.sampleOffset = sizeof(uint8_t) * 2;
+        break;
+    case AUDIO_S16:
+        s_audioFormat.type = EDMIDI_SampleType_S16;
+        s_audioFormat.containerSize = sizeof(int16_t);
+        s_audioFormat.sampleOffset = sizeof(int16_t) * 2;
+        break;
+    case AUDIO_U16:
+        s_audioFormat.type = EDMIDI_SampleType_U16;
+        s_audioFormat.containerSize = sizeof(uint16_t);
+        s_audioFormat.sampleOffset = sizeof(uint16_t) * 2;
+        break;
+    case AUDIO_S32:
+        s_audioFormat.type = EDMIDI_SampleType_S32;
+        s_audioFormat.containerSize = sizeof(int32_t);
+        s_audioFormat.sampleOffset = sizeof(int32_t) * 2;
+        break;
+    case AUDIO_F32:
+        s_audioFormat.type = EDMIDI_SampleType_F32;
+        s_audioFormat.containerSize = sizeof(float);
+        s_audioFormat.sampleOffset = sizeof(float) * 2;
+        break;
+    default:
+        fprintf(stderr, "Unsupported output audio format: %d\n", obtained.format);
+        flushout(stderr);
+        SDL_CloseAudio();
+        SDL_Quit();
+        return 1;
+    }
+
     /* Initialize EmuDeMidi */
-    midi_player = edmidi_initEx(44100, 16);
+    midi_player = edmidi_initEx(obtained.freq, 16);
     if (!midi_player)
     {
         fprintf(stderr, "Couldn't initialize EDMIDI: %s\n", edmidi_errorString());
+        flushout(stderr);
+        SDL_CloseAudio();
+        SDL_Quit();
         return 1;
     }
 
@@ -122,7 +232,10 @@ int main(int argc, char **argv)
     if (edmidi_openFile(midi_player, music_path) < 0)
     {
         fprintf(stderr, "Couldn't open music file: %s\n", edmidi_errorInfo(midi_player));
+        flushout(stderr);
         edmidi_close(midi_player);
+        SDL_CloseAudio();
+        SDL_Quit();
         return 1;
     }
 
@@ -139,7 +252,6 @@ int main(int argc, char **argv)
         secondsToHMSM(loopEnd, loopEndHMS, 25);
     }
 
-
     fprintf(stdout, " - Track count: %lu\n", (unsigned long)(edmidi_trackCount(midi_player)));
 
     fprintf(stdout, " - Loop is turned %s\n", loopEnabled ? "ON" : "OFF");
@@ -147,33 +259,6 @@ int main(int argc, char **argv)
         fprintf(stdout, " - Has loop points: %s ... %s\n", loopStartHMS, loopEndHMS);
     fprintf(stdout, "\n==========================================\n");
     flushout(stdout);
-
-    /* Initialize SDL.*/
-    if(SDL_Init(SDL_INIT_AUDIO) < 0)
-    {
-        fprintf(stderr, "Couldn't initialize SDL: %s\n", SDL_GetError());
-        edmidi_close(midi_player);
-        return 1;
-    }
-
-    SDL_memset(&spec, 0, sizeof(SDL_AudioSpec));
-    spec.freq = 44100;
-    spec.format = AUDIO_F32SYS;
-    spec.channels = 2;
-    spec.samples = 4096;
-
-    /* set the callback function */
-    spec.callback = my_audio_callback;
-    /* set ADLMIDI's descriptor as userdata to use it for sound generation */
-    spec.userdata = midi_player;
-
-    /* Open the audio device */
-    if(SDL_OpenAudio(&spec, &obtained) < 0)
-    {
-        fprintf(stderr, "Couldn't open audio: %s\n", SDL_GetError());
-        edmidi_close(midi_player);
-        return 1;
-    }
 
     fprintf(stdout, "                                               \r");
 
@@ -224,10 +309,15 @@ int main(int argc, char **argv)
 */
 static void my_audio_callback(void *midi_player, Uint8 *stream, int len)
 {
-    struct EDMIDIPlayer *mp = (struct EDMIDIPlayer*)midi_player;
-    int count = len / sizeof(float);
-    float* dest = (float*)stream;
-    int got = edmidi_playF32(mp, count, dest);
+    struct EDMIDIPlayer *mp = *(struct EDMIDIPlayer**)midi_player;
+    int count = len / s_audioFormat.containerSize;
+
+    /* Take some samples from the EDMIDI */
+    int got = adl_playFormat(mp, count,
+                             stream,
+                             stream + s_audioFormat.containerSize,
+                             &s_audioFormat);
+
     if(got == 0)
     {
         s_is_playing = SDL_FALSE;
