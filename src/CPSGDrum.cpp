@@ -12,7 +12,7 @@ static CPSGDrum::Instrument inst_table[128] = {
      {  60,  -2,   2,  {  0,  80,  0,  0, 80 } }, // SD
 };
 
-CPSGDrum::CPSGDrum(DWORD rate, UINT nch) : m_env(6) {
+CPSGDrum::CPSGDrum(DWORD rate, UINT nch) : ISoundDevice(), m_on_channels(128), m_off_channels(128), m_env(6), m_rbuf(2, RBuf(10960)) {
 
   if(nch==2) m_nch = 2; else m_nch = 1;
   m_rate = rate;
@@ -20,7 +20,7 @@ CPSGDrum::CPSGDrum(DWORD rate, UINT nch) : m_env(6) {
   for(UINT i=0;i<2; i++)
     m_psg[i] = PSG_new(3579545,rate);
 
-  Reset();
+  CPSGDrum::Reset();
 
   for(int i=0;i<128;i++) {
     m_note2freq[i] = (WORD)(3579545.0/16/(440.0*pow(2.0,(double)(i-57)/12)));
@@ -99,7 +99,7 @@ RESULT CPSGDrum::Render(INT32 buf[2]) {
         for(int ch=0;ch<6;ch++) _UpdateVolume(ch);
       }
     } else
-      buf[0] += m_rbuf[i].front();
+      buf[0] += m_rbuf[i].front().value;
     m_rbuf[i].pop_front();
   }
   buf[0]<<=1;
@@ -144,15 +144,15 @@ void CPSGDrum::PercKeyOn(UINT8 note) {
   KeyInfo ki;
 
   if(m_off_channels.empty()) {
-    ki = m_on_channels.front();
+    ki = m_on_channels.front().value;
     PercKeyOff(ki.note);
     m_on_channels.pop_front();
   } else {
-    ki.ch = m_off_channels.front();
+    ki.ch = m_off_channels.front().value;
     m_off_channels.pop_front();
-    std::deque<KeyInfo>::iterator it;
+    OnChannelsQ::iterator it;
     for(it=m_on_channels.begin();it!=m_on_channels.end();it++) {
-      if((*it).ch == ki.ch) {
+      if(it->value.ch == ki.ch) {
         m_on_channels.erase(it);
         break;
       }
@@ -188,6 +188,8 @@ void CPSGDrum::PercKeyOff(UINT8 note) {
 }
 
 void CPSGDrum::PercSetProgram(UINT8 bank, UINT8 prog) {
+  (void)bank;
+  (void)prog;
 }
 
 void CPSGDrum::PercSetVelocity(UINT8 note, UINT8 velo) {

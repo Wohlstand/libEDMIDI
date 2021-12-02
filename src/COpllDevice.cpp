@@ -80,7 +80,9 @@ static BYTE perc_table[128] =
    0, 0, 0, 0, 0, 0, 0, 0  //120- 
 };
 
-COpllDevice::COpllDevice(DWORD rate, UINT nch) { 
+COpllDevice::COpllDevice(DWORD rate, UINT nch) : ISoundDevice(),
+    m_rbuf(2, RBuf(10960))
+{
 
   if(nch==2) 
     m_nch = 2;
@@ -93,7 +95,7 @@ COpllDevice::COpllDevice(DWORD rate, UINT nch) {
     m_rbuf[i].clear();
   }
 
-  Reset();
+  COpllDevice::Reset();
 }
 
 COpllDevice::~COpllDevice() {
@@ -194,7 +196,7 @@ RESULT COpllDevice::Render(INT32 buf[2]) {
     if(m_rbuf[i].empty())
       buf[i] = OPLL_calc(m_opll[i]);
     else {
-      buf[i] = m_rbuf[i].front();
+      buf[i] = m_rbuf[i].front().value;
       m_rbuf[i].pop_front();
     }
   }
@@ -279,6 +281,7 @@ void COpllDevice::SetBend(UINT ch, INT8 coarse, INT8 fine) {
 }
 
 void COpllDevice::SetProgram(UINT ch, UINT8 bank, UINT8 prog) {
+  (void)bank;
   m_ci[ch].program = program_table[prog];
   _UpdateVolume(ch);
 }

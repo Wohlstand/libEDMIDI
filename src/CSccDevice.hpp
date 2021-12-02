@@ -1,9 +1,14 @@
 #ifndef __CSCC_DEVICE_HPP__
 #define __CSCC_DEVICE_HPP__
-#include <deque>
-namespace dsa { namespace C {
+#include "structures/pl_list.hpp"
+#include <vector>
+
+namespace dsa {
+    namespace C {
 #include "device/emu2212.h"
-}};
+    }
+}
+
 #include "DsaCommon.hpp"
 #include "ISoundDevice.hpp"
 
@@ -40,7 +45,8 @@ private:
   BYTE m_reg_cache[2][0x100]; 
   UINT16 m_note2freq[128];
   ChannelInfo m_ci[5];
-  std::deque<INT32> m_rbuf[2]; // The rendering buffer
+  typedef pl_list<INT32> RBuf;
+  std::vector<RBuf> m_rbuf; // The rendering buffer
   void _UpdateVolume(UINT ch);
   void _UpdateFreq(UINT ch);
   void _UpdateProgram(UINT ch);
@@ -53,11 +59,11 @@ public:
   RESULT Reset(void);
   RESULT Render(INT32 buf[2]);
 
-  void PercKeyOn(UINT8 note){};
-  void PercKeyOff(UINT8 note){};
-  void PercSetVolume(UINT8 vol){};
-  void PercSetVelocity(UINT8 note, UINT8 velo){};
-  void PercSetProgram(UINT8 note, UINT8 velo){};
+  void PercKeyOn(UINT8 note){(void)note;};
+  void PercKeyOff(UINT8 note){(void)note;};
+  void PercSetVolume(UINT8 vol){(void)vol;};
+  void PercSetVelocity(UINT8 note, UINT8 velo){(void)note;(void)velo;};
+  void PercSetProgram(UINT8 note, UINT8 velo){(void)note;(void)velo;};
 
   void SetProgram(UINT ch, UINT8 bank, UINT8 prog);
   void SetVelocity(UINT ch, UINT8 vel);

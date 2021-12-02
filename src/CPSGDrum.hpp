@@ -1,8 +1,12 @@
 #ifndef __CPSG_DRUM_HPP__
-#include <deque>
-namespace dsa { namespace C {
+#include "structures/pl_list.hpp"
+#include <vector>
+
+namespace dsa {
+    namespace C {
 #include "device/emu2149.h"
-}};
+    }
+}
 #include "DsaCommon.hpp"
 #include "ISoundDevice.hpp"
 #include "CEnvelope.hpp"
@@ -33,14 +37,17 @@ private:
   UINT8 m_noise_mode[2];
   UINT16 m_note2freq[128];
   struct KeyInfo { UINT ch; UINT8 note; };
-  std::deque<KeyInfo> m_on_channels;
-  std::deque<UINT> m_off_channels;
+  typedef pl_list<KeyInfo> OnChannelsQ;
+  OnChannelsQ m_on_channels;
+  typedef pl_list<UINT> OffChannelsQ;
+  OffChannelsQ m_off_channels;
   ChannelInfo m_ci[6];
   CEnvelope m_env;
   UINT8 m_volume;
   UINT8 m_velocity[128];
   INT m_keytable[128];
-  std::deque<INT32> m_rbuf[2];
+  typedef pl_list<INT32> RBuf;
+  std::vector<RBuf> m_rbuf; // The rendering buffer
   void _UpdateMode(UINT ch);
   void _UpdateVolume(UINT ch);
   void _UpdateFreq(UINT ch);

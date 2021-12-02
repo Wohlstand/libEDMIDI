@@ -31,25 +31,25 @@
 #define OPLL_TONE_NUM 3
 /* clang-format off */
 static uint8_t default_inst[OPLL_TONE_NUM][(16 + 3) * 8] = {{
-0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, // 0: Original
-0x71,0x61,0x1e,0x17,0xd0,0x78,0x00,0x17, // 1: Violin
-0x13,0x41,0x1a,0x0d,0xd8,0xf7,0x23,0x13, // 2: Guitar
-0x13,0x01,0x99,0x00,0xf2,0xd4,0x21,0x23, // 3: Piano
-0x11,0x61,0x0e,0x07,0x8d,0x64,0x70,0x27, // 4: Flute
-0x32,0x21,0x1e,0x06,0xe1,0x76,0x01,0x28, // 5: Clarinet
-0x31,0x22,0x16,0x05,0xe0,0x71,0x00,0x18, // 6: Oboe
-0x21,0x61,0x1d,0x07,0x82,0x81,0x11,0x07, // 7: Trumpet
-0x33,0x21,0x2d,0x13,0xb0,0x70,0x00,0x07, // 8: Organ
-0x61,0x61,0x1b,0x06,0x64,0x65,0x10,0x17, // 9: Horn
-0x41,0x61,0x0b,0x18,0x85,0xf0,0x81,0x07, // A: Synthesizer
-0x33,0x01,0x83,0x11,0xea,0xef,0x10,0x04, // B: Harpsichord
-0x17,0xc1,0x24,0x07,0xf8,0xf8,0x22,0x12, // C: Vibraphone
-0x61,0x50,0x0c,0x05,0xd2,0xf5,0x40,0x42, // D: Synthsizer Bass
-0x01,0x01,0x55,0x03,0xe4,0x90,0x03,0x02, // E: Acoustic Bass
-0x41,0x41,0x89,0x03,0xf1,0xe4,0xc0,0x13, // F: Electric Guitar
-0x01,0x01,0x18,0x0f,0xdf,0xf8,0x6a,0x6d, // R: Bass Drum (from VRC7)
-0x01,0x01,0x00,0x00,0xc8,0xd8,0xa7,0x68, // R: High-Hat(M) / Snare Drum(C) (from VRC7)
-0x05,0x01,0x00,0x00,0xf8,0xaa,0x59,0x55, // R: Tom-tom(M) / Top Cymbal(C) (from VRC7)
+0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, /* 0: Original */
+0x71,0x61,0x1e,0x17,0xd0,0x78,0x00,0x17, /* 1: Violin */
+0x13,0x41,0x1a,0x0d,0xd8,0xf7,0x23,0x13, /* 2: Guitar */
+0x13,0x01,0x99,0x00,0xf2,0xd4,0x21,0x23, /* 3: Piano */
+0x11,0x61,0x0e,0x07,0x8d,0x64,0x70,0x27, /* 4: Flute */
+0x32,0x21,0x1e,0x06,0xe1,0x76,0x01,0x28, /* 5: Clarinet */
+0x31,0x22,0x16,0x05,0xe0,0x71,0x00,0x18, /* 6: Oboe */
+0x21,0x61,0x1d,0x07,0x82,0x81,0x11,0x07, /* 7: Trumpet */
+0x33,0x21,0x2d,0x13,0xb0,0x70,0x00,0x07, /* 8: Organ */
+0x61,0x61,0x1b,0x06,0x64,0x65,0x10,0x17, /* 9: Horn */
+0x41,0x61,0x0b,0x18,0x85,0xf0,0x81,0x07, /* A: Synthesizer */
+0x33,0x01,0x83,0x11,0xea,0xef,0x10,0x04, /* B: Harpsichord */
+0x17,0xc1,0x24,0x07,0xf8,0xf8,0x22,0x12, /* C: Vibraphone */
+0x61,0x50,0x0c,0x05,0xd2,0xf5,0x40,0x42, /* D: Synthsizer Bass */
+0x01,0x01,0x55,0x03,0xe4,0x90,0x03,0x02, /* E: Acoustic Bass */
+0x41,0x41,0x89,0x03,0xf1,0xe4,0xc0,0x13, /* F: Electric Guitar */
+0x01,0x01,0x18,0x0f,0xdf,0xf8,0x6a,0x6d, /* R: Bass Drum (from VRC7) */
+0x01,0x01,0x00,0x00,0xc8,0xd8,0xa7,0x68, /* R: High-Hat(M) / Snare Drum(C) (from VRC7) */
+0x05,0x01,0x00,0x00,0xf8,0xaa,0x59,0x55, /* R: Tom-tom(M) / Top Cymbal(C) (from VRC7) */
 },{
 /* VRC7 presets from Nuke.YKT */
 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -179,33 +179,33 @@ static uint16_t *wave_table_map[2] = {fullsin_table, halfsin_table};
 
 /* offset to fnum, rough approximation of 14 cents depth. */
 static int8_t pm_table[8][PM_PG_WIDTH] = {
-    {0, 0, 0, 0, 0, 0, 0, 0},    // fnum = 000xxxxx
-    {0, 0, 1, 0, 0, 0, -1, 0},   // fnum = 001xxxxx
-    {0, 1, 2, 1, 0, -1, -2, -1}, // fnum = 010xxxxx
-    {0, 1, 3, 1, 0, -1, -3, -1}, // fnum = 011xxxxx
-    {0, 2, 4, 2, 0, -2, -4, -2}, // fnum = 100xxxxx
-    {0, 2, 5, 2, 0, -2, -5, -2}, // fnum = 101xxxxx
-    {0, 3, 6, 3, 0, -3, -6, -3}, // fnum = 110xxxxx
-    {0, 3, 7, 3, 0, -3, -7, -3}, // fnum = 111xxxxx
+    {0, 0, 0, 0, 0, 0, 0, 0},    /* fnum = 000xxxxx */
+    {0, 0, 1, 0, 0, 0, -1, 0},   /* fnum = 001xxxxx */
+    {0, 1, 2, 1, 0, -1, -2, -1}, /* fnum = 010xxxxx */
+    {0, 1, 3, 1, 0, -1, -3, -1}, /* fnum = 011xxxxx */
+    {0, 2, 4, 2, 0, -2, -4, -2}, /* fnum = 100xxxxx */
+    {0, 2, 5, 2, 0, -2, -5, -2}, /* fnum = 101xxxxx */
+    {0, 3, 6, 3, 0, -3, -6, -3}, /* fnum = 110xxxxx */
+    {0, 3, 7, 3, 0, -3, -7, -3}, /* fnum = 111xxxxx */
 };
 
 /* amplitude lfo table */
 /* The following envelop pattern is verified on real YM2413. */
 /* each element repeates 64 cycles */
-static uint8_t am_table[210] = {0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  1,  1,  //
-                                2,  2,  2,  2,  2,  2,  2,  2,  3,  3,  3,  3,  3,  3,  3,  3,  //
-                                4,  4,  4,  4,  4,  4,  4,  4,  5,  5,  5,  5,  5,  5,  5,  5,  //
-                                6,  6,  6,  6,  6,  6,  6,  6,  7,  7,  7,  7,  7,  7,  7,  7,  //
-                                8,  8,  8,  8,  8,  8,  8,  8,  9,  9,  9,  9,  9,  9,  9,  9,  //
-                                10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, //
-                                12, 12, 12, 12, 12, 12, 12, 12,                                 //
-                                13, 13, 13,                                                     //
-                                12, 12, 12, 12, 12, 12, 12, 12,                                 //
-                                11, 11, 11, 11, 11, 11, 11, 11, 10, 10, 10, 10, 10, 10, 10, 10, //
-                                9,  9,  9,  9,  9,  9,  9,  9,  8,  8,  8,  8,  8,  8,  8,  8,  //
-                                7,  7,  7,  7,  7,  7,  7,  7,  6,  6,  6,  6,  6,  6,  6,  6,  //
-                                5,  5,  5,  5,  5,  5,  5,  5,  4,  4,  4,  4,  4,  4,  4,  4,  //
-                                3,  3,  3,  3,  3,  3,  3,  3,  2,  2,  2,  2,  2,  2,  2,  2,  //
+static uint8_t am_table[210] = {0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  1,  1,
+                                2,  2,  2,  2,  2,  2,  2,  2,  3,  3,  3,  3,  3,  3,  3,  3,
+                                4,  4,  4,  4,  4,  4,  4,  4,  5,  5,  5,  5,  5,  5,  5,  5,
+                                6,  6,  6,  6,  6,  6,  6,  6,  7,  7,  7,  7,  7,  7,  7,  7,
+                                8,  8,  8,  8,  8,  8,  8,  8,  9,  9,  9,  9,  9,  9,  9,  9,
+                                10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11,
+                                12, 12, 12, 12, 12, 12, 12, 12,
+                                13, 13, 13,
+                                12, 12, 12, 12, 12, 12, 12, 12,
+                                11, 11, 11, 11, 11, 11, 11, 11, 10, 10, 10, 10, 10, 10, 10, 10,
+                                9,  9,  9,  9,  9,  9,  9,  9,  8,  8,  8,  8,  8,  8,  8,  8,
+                                7,  7,  7,  7,  7,  7,  7,  7,  6,  6,  6,  6,  6,  6,  6,  6,
+                                5,  5,  5,  5,  5,  5,  5,  5,  4,  4,  4,  4,  4,  4,  4,  4,
+                                3,  3,  3,  3,  3,  3,  3,  3,  2,  2,  2,  2,  2,  2,  2,  2,
                                 1,  1,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0};
 
 /* envelope decay increment step table */
@@ -257,7 +257,7 @@ static OPLL_PATCH default_patch[OPLL_TONE_NUM][(16 + 3) * 2];
 /* fast conversion: 3-point average filter is used instead of sinc(x) table. rough and fast.*/
 #define USE_FAST_RATE_CONV 0
 
-// double hamming(double x) { return 0.54 - 0.46 * cos(2 * PI * x); }
+/* double hamming(double x) { return 0.54 - 0.46 * cos(2 * PI * x); } */
 static double blackman(double x) { return 0.42 - 0.5 * cos(2 * _PI_ * x) + 0.08 * cos(4 * _PI_ * x); }
 static double sinc(double x) { return (x == 0.0 ? 1.0 : sin(_PI_ * x) / (_PI_ * x)); }
 static double windowed_sinc(double x) { return blackman(0.5 + 0.5 * x / (LW / 2)) * sinc(x); }
@@ -351,9 +351,9 @@ void OPLL_RateConv_delete(OPLL_RateConv *conv) {
 
 static void makeSinTable(void) {
   int x;
-  // for (x = 0; x < PG_WIDTH / 4; x++) {
-  //   fullsin_table[x] = (uint16_t)round(-log2(sin((x + 0.5) * PI / (PG_WIDTH / 4) / 2)) * 256);
-  // }
+  /* for (x = 0; x < PG_WIDTH / 4; x++) {
+     fullsin_table[x] = (uint16_t)round(-log2(sin((x + 0.5) * PI / (PG_WIDTH / 4) / 2)) * 256);
+     } */
 
   for (x = 0; x < PG_WIDTH / 4; x++) {
     fullsin_table[PG_WIDTH / 4 + x] = fullsin_table[PG_WIDTH / 4 - x - 1];
@@ -502,7 +502,7 @@ enum SLOT_UPDATE_FLAG {
   UPDATE_TLL = 2,
   UPDATE_RKS = 4,
   UPDATE_EG = 8,
-  UPDATE_ALL = 255,
+  UPDATE_ALL = 255
 };
 
 static INLINE void request_update(OPLL_SLOT *slot, int flag) { slot->update_requests |= flag; }
@@ -1232,7 +1232,7 @@ void OPLL_setRate(OPLL *opll, uint32_t rate) {
   reset_rate_conversion_params(opll);
 }
 
-void OPLL_setQuality(OPLL *opll, uint8_t q) {}
+void OPLL_setQuality(OPLL *opll, uint8_t q) {(void)opll; (void)q;}
 
 void OPLL_setChipMode(OPLL *opll, uint8_t mode) { opll->chip_mode = mode; }
 

@@ -1,6 +1,7 @@
 #ifndef __CDeviceOpll_H__
 #define __CDeviceOpll_H__
-#include <deque>
+#include "structures/pl_list.hpp"
+#include <vector>
 
 #include "ISoundDevice.hpp"
 
@@ -40,7 +41,8 @@ private:
   BYTE m_reg_cache[2][0x80];
   ChannelInfo m_ci[9];
   PercInfo m_pi;
-  std::deque<INT32> m_rbuf[2]; // The rendering buffer
+  typedef pl_list<INT32> RBuf;
+  std::vector<RBuf> m_rbuf; // The rendering buffer
 
   void _UpdateFreq(UINT ch);
   void _UpdateVolume(UINT ch);

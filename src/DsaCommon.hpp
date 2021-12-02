@@ -36,11 +36,12 @@ enum RESULT { FAILURE=0, SUCCESS=1 };
 // Exception of so-called 'Runtime Errors'.
 class RuntimeException { 
 public:
-  const bool m_fatal;
   const char *m_message;
   const char *m_file;
-  const int m_lineno;
-  RuntimeException(const char *message, const char *file, int lineno, bool fatal=true) 
+  const int  m_lineno;
+  const bool m_fatal;
+
+  RuntimeException(const char *message, const char *file, int lineno, bool fatal = true)
     : m_message(message), m_file(file), m_lineno(lineno), m_fatal(fatal) {}
 };
 

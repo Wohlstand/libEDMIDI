@@ -73,7 +73,9 @@ void CSccDevice::_CalcEnvelope(void) {
 
 }
 
-CSccDevice::CSccDevice(DWORD rate, UINT nch){
+CSccDevice::CSccDevice(DWORD rate, UINT nch): ISoundDevice(),
+    m_rbuf(2, RBuf(10960))
+{
 
   if(nch==2) m_nch = 2; else m_nch = 1;
   m_rate = rate;
@@ -83,7 +85,7 @@ CSccDevice::CSccDevice(DWORD rate, UINT nch){
     m_scc[i] = SCC_new(3579545,rate);
   }
 
-  Reset();
+  CSccDevice::Reset();
 
   {
   for(int i=0;i<127;i++) {
@@ -185,7 +187,7 @@ RESULT CSccDevice::Render(INT32 buf[2]) {
       buf[i] = SCC_calc(m_scc[i]);
 	  if (!i) _CalcEnvelope();
     } else {
-      buf[i] = m_rbuf[i].front();
+      buf[i] = m_rbuf[i].front().value;
       m_rbuf[i].pop_front();
     }
   }
@@ -258,6 +260,7 @@ void CSccDevice::_UpdateProgram(UINT ch) {
 }
 
 void CSccDevice::SetProgram(UINT ch, UINT8 bank, UINT8 prog) {
+  (void)bank;
   m_ci[ch].program = prog;
 }
 

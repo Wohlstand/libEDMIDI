@@ -81,7 +81,7 @@ EDMIDI_EXPORT struct EDMIDIPlayer *edmidi_init(long sample_rate)
     return edmidi_initEx(sample_rate, 8);
 }
 
-EDMIDIPlayer *edmidi_initEx(long sample_rate, int modules)
+EDMIDI_EXPORT EDMIDIPlayer *edmidi_initEx(long sample_rate, int modules)
 {
     EDMIDIPlayer *midi_device;
     memset(EDMIDI_ErrorString, 0, sizeof(EDMIDI_ErrorString));
