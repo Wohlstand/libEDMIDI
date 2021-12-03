@@ -29,6 +29,7 @@ private:
   int m_expression[16];
   // そのキーを発音しているチャンネル番号を格納する配列
   int m_keyon_table[16][128];
+  double m_bendsense[16];
 
   typedef pl_list<KeyInfo> ChannelList;
   // MIDIチャンネルで使用しているOPLLチャンネルの集合(発音順のキュー）
@@ -40,6 +41,8 @@ private:
   int m_entry_mode;
 
   void updateBanks(BYTE ch);
+
+  void updateBendSensitivity(BYTE ch);
 
 protected:
   virtual void ControlChange(BYTE ch, BYTE msb, BYTE lsb);

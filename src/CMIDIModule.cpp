@@ -41,6 +41,7 @@ RESULT CMIDIModule::Reset()
             m_expression[i] = 127;
             for(int j = 0; j < 128; j++)
                 m_keyon_table[i][j] = -1;
+            updateBendSensitivity(i);
         }
     }
     m_drum[9] = 1;
@@ -78,17 +79,26 @@ void CMIDIModule::Panpot(BYTE midi_ch, bool is_fine, BYTE data)
 
 void CMIDIModule::UpdatePitchBend(BYTE midi_ch)
 {
-    int range = (m_bend_range[midi_ch] >> 7);
-    if(range != 0)
-    {
-        m_bend_coarse[midi_ch] = (m_bend[midi_ch] * range) / 8192 ; // note offset
-        m_bend_fine[midi_ch] = ((m_bend[midi_ch] % (8192 / range)) * 100 * range) / 8192; // cent offset
-    }
-    else
-    {
-        m_bend_coarse[midi_ch] = 0;
-        m_bend_fine[midi_ch] = 0;
-    }
+//    int range = (m_bend_range[midi_ch] >> 7);
+//    if(range != 0)
+//    {
+//        m_bend_coarse[midi_ch] = (m_bend[midi_ch] * range) / 8192 ; // note offset
+//        m_bend_fine[midi_ch] = ((m_bend[midi_ch] % (8192 / range)) * 100 * range) / 8192; // cent offset
+//    }
+//    else
+//    {
+//        m_bend_coarse[midi_ch] = 0;
+//        m_bend_fine[midi_ch] = 0;
+//    }
+
+    double bend = m_bend[midi_ch] * m_bendsense[midi_ch];
+    double bendDec = bend - (int)bend;
+
+    m_bend_coarse[midi_ch] = (int)bend;
+    m_bend_fine[midi_ch] = 100 * bendDec; // cent offset
+
+//    fprintf(stdout, "%d,%d\n", m_bend_coarse[midi_ch], m_bend_fine[midi_ch]);
+//    fflush(stdout);
 
     ChannelList::iterator it;
     for(it = m_used_channels[midi_ch].begin(); it != m_used_channels[midi_ch].end(); it++)
@@ -255,6 +265,7 @@ void CMIDIModule::LoadRPN(BYTE midi_ch, WORD data)
     {
     case 0x0000:
         m_bend_range[midi_ch] = data;
+        updateBendSensitivity(midi_ch);
         UpdatePitchBend(midi_ch);
         break;
     default:
@@ -352,6 +363,11 @@ void CMIDIModule::updateBanks(BYTE ch)
 {
     if(ch != 9)
         m_drum[ch] = ((m_bank_lsb[ch] == 0) && (m_bank_msb[ch] == 127)) ? 1 : 0;
+}
+
+void CMIDIModule::updateBendSensitivity(BYTE ch)
+{
+    m_bendsense[ch] = m_bend_range[ch] * (1.0 / (128 * 8192));
 }
 
 void CMIDIModule::ControlChange(BYTE midi_ch, BYTE msb, BYTE lsb)
