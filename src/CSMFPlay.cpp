@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <limits.h>
 #include <assert.h>
+#include <stdint.h>
 #include "CSMFPlay.hpp"
 #include "COpllDevice.hpp"
 #include "CSccDevice.hpp"
@@ -12,6 +13,29 @@
 #       define new new( _NORMAL_BLOCK, __FILE__, __LINE__)
 #   endif
 #endif
+
+/*
+ * Workaround for some compilers are has no those macros in their headers!
+ */
+#ifndef INT8_MIN
+#define INT8_MIN    (-0x7f - 1)
+#endif
+#ifndef INT16_MIN
+#define INT16_MIN   (-0x7fff - 1)
+#endif
+#ifndef INT32_MIN
+#define INT32_MIN   (-0x7fffffff - 1)
+#endif
+#ifndef INT8_MAX
+#define INT8_MAX    0x7f
+#endif
+#ifndef INT16_MAX
+#define INT16_MAX   0x7fff
+#endif
+#ifndef INT32_MAX
+#define INT32_MAX   0x7fffffff
+#endif
+
 
 using namespace dsa;
 
