@@ -24,6 +24,7 @@ typedef int32_t ssize_t;
 #include <limits.h>
 #include <assert.h>
 #include <stdint.h>
+#include <algorithm>
 #include "CSMFPlay.hpp"
 #include "COpllDevice.hpp"
 #include "CSccDevice.hpp"
