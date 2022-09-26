@@ -65,7 +65,10 @@ endfunction()
 
 if(NOT EMSCRIPTEN
    AND NOT VITA
-   AND NOT 3DS
+   AND NOT NINTENDO_3DS
+   AND NOT NINTENDO_WII
+   AND NOT NINTENDO_WIIU
+   AND NOT NINTENDO_SWITCH
    AND NOT EDMIDI_DOS)
     option(libEDMIDI_STATIC   "Build static library of libEDMIDI" ON)
     option(libEDMIDI_SHARED   "Build shared library of libEDMIDI" OFF)
@@ -78,7 +81,9 @@ option(WITH_MIDIPLAY          "Build also demo MIDI player" OFF)
 
 if(NOT WIN32
    AND NOT VITA
-   AND NOT 3DS
+   AND NOT NINTENDO_3DS
+   AND NOT NINTENDO_WII
+   AND NOT NINTENDO_WIIU
    AND NOT EMSCRIPTEN
    AND NOT EDMIDI_DOS)
     option(ENABLE_FPIC "Build static libraries as position independent code" ON)
