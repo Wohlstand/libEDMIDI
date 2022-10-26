@@ -533,7 +533,7 @@ extern EDMIDI_DECLSPEC void edmidi_setDebugMessageHook(struct EDMIDIPlayer *devi
  * @param loopStartHook Pointer to the callback function which will be called on every loop start point passing
  * @param userData Pointer to user data which will be passed through the callback.
  */
-extern EDMIDI_DECLSPEC void edmidi_setLoopStartHook(struct ADL_MIDIPlayer *device, EDMIDI_LoopPointHook loopStartHook, void *userData);
+extern EDMIDI_DECLSPEC void edmidi_setLoopStartHook(struct EDMIDIPlayer *device, EDMIDI_LoopPointHook loopStartHook, void *userData);
 
 /**
  * @brief Set the look start point hook
@@ -549,7 +549,7 @@ extern EDMIDI_DECLSPEC void edmidi_setLoopStartHook(struct ADL_MIDIPlayer *devic
  * @param loopStartHook Pointer to the callback function which will be called on every loop start point passing
  * @param userData Pointer to user data which will be passed through the callback.
  */
-extern EDMIDI_DECLSPEC void edmidi_setLoopEndHook(struct ADL_MIDIPlayer *device, EDMIDI_LoopPointHook loopEndHook, void *userData);
+extern EDMIDI_DECLSPEC void edmidi_setLoopEndHook(struct EDMIDIPlayer *device, EDMIDI_LoopPointHook loopEndHook, void *userData);
 
 
 
