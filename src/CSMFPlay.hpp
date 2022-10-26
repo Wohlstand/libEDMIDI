@@ -62,8 +62,12 @@ public:
 
     void SetLoop(bool enabled);
     void SetLoopsNumber(int loops);
+    void setLoopHooksOnly(bool enabled);
     bool GetLoop();
     bool SeqEof();
+
+    void setSongNum(int track);
+    int getSongsCount();
 
     void setTempo(double tempo);
     double getTempo();
@@ -81,6 +85,8 @@ public:
     EdMidi_MarkerEntry getMarker(size_t index);
 
     void setDebugMessageHook(EDMIDI_DebugMessageHook debugMessageHook, void *userData);
+    void adl_setLoopStartHook(EDMIDI_LoopPointHook loopStartHook, void *userData);
+    void adl_setLoopEndHook(EDMIDI_LoopPointHook loopEndHook, void *userData);
 
     const std::string &getErrorString() const;
     void setErrorString(const std::string &err);

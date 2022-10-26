@@ -162,6 +162,11 @@ void CSMFPlay::SetLoopsNumber(int loops)
     m_sequencer->setLoopsCount(loops);
 }
 
+void CSMFPlay::setLoopHooksOnly(bool enabled)
+{
+    m_sequencer->setLoopHooksOnly(enabled);
+}
+
 bool CSMFPlay::GetLoop()
 {
     return m_sequencer->getLoopEnabled();
@@ -170,6 +175,16 @@ bool CSMFPlay::GetLoop()
 bool CSMFPlay::SeqEof()
 {
     return m_sequencer->positionAtEnd();
+}
+
+void CSMFPlay::setSongNum(int track)
+{
+    m_sequencer->setSongNum(track);
+}
+
+int CSMFPlay::getSongsCount()
+{
+    return m_sequencer->getSongsCount();
 }
 
 void CSMFPlay::setTempo(double tempo)
@@ -246,6 +261,18 @@ void CSMFPlay::setDebugMessageHook(EDMIDI_DebugMessageHook debugMessageHook, voi
 {
     m_sequencerInterface->onDebugMessage = debugMessageHook;
     m_sequencerInterface->onDebugMessage_userData = userData;
+}
+
+void CSMFPlay::adl_setLoopStartHook(EDMIDI_LoopPointHook loopStartHook, void *userData)
+{
+    m_sequencerInterface->onloopStart = loopStartHook;
+    m_sequencerInterface->onloopStart_userData = userData;
+}
+
+void CSMFPlay::adl_setLoopEndHook(EDMIDI_LoopPointHook loopEndHook, void *userData)
+{
+    m_sequencerInterface->onloopEnd = loopEndHook;
+    m_sequencerInterface->onloopEnd_userData = userData;
 }
 
 const std::string &CSMFPlay::getErrorString() const

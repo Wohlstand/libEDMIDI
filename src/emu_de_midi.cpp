@@ -88,20 +88,20 @@ EDMIDI_EXPORT EDMIDIPlayer *edmidi_initEx(long sample_rate, int modules)
 
     if(modules < 2)
     {
-        sprintf(EDMIDI_ErrorString, "Can't initialize ADLMIDI: modules less than minimum allowed (2)!");
+        sprintf(EDMIDI_ErrorString, "Can't initialize Emu De MIDI: modules less than minimum allowed (2)!");
         return NULL;
     }
 
     if(modules & 1)
     {
-        sprintf(EDMIDI_ErrorString, "Can't initialize ADLMIDI: modules number must be an even number!");
+        sprintf(EDMIDI_ErrorString, "Can't initialize Emu De MIDI: modules number must be an even number!");
         return NULL;
     }
 
     midi_device = (EDMIDIPlayer *)malloc(sizeof(EDMIDIPlayer));
     if(!midi_device)
     {
-        sprintf(EDMIDI_ErrorString, "Can't initialize ADLMIDI: out of memory!");
+        sprintf(EDMIDI_ErrorString, "Can't initialize Emu De MIDI: out of memory!");
         return NULL;
     }
 
@@ -109,7 +109,7 @@ EDMIDI_EXPORT EDMIDIPlayer *edmidi_initEx(long sample_rate, int modules)
     if(!player)
     {
         free(midi_device);
-        sprintf(EDMIDI_ErrorString, "Can't initialize ADLMIDI: out of memory!");
+        sprintf(EDMIDI_ErrorString, "Can't initialize Emu De MIDI: out of memory!");
         return NULL;
     }
 
@@ -146,7 +146,7 @@ EDMIDI_EXPORT int edmidi_openFile(struct EDMIDIPlayer *device, const char *fileP
         else return 0;
     }
 
-    sprintf(EDMIDI_ErrorString, "Can't load file: ADL Emu De MIDI is not initialized");
+    sprintf(EDMIDI_ErrorString, "Can't load file: Emu De MIDI is not initialized");
     return -1;
 }
 
@@ -160,14 +160,34 @@ EDMIDI_EXPORT int edmidi_openData(struct EDMIDIPlayer *device, const void *mem, 
         {
             std::string err = play->getErrorString();
             if(err.empty())
-                play->setErrorString("ADL MIDI: Can't load data from memory");
+                play->setErrorString("Emu De MIDI: Can't load data from memory");
             return -1;
         }
         else return 0;
     }
 
-    sprintf(EDMIDI_ErrorString, "Can't load file: ADL Emu De MIDI is not initialized");
+    sprintf(EDMIDI_ErrorString, "Can't load file: Emu De MIDI is not initialized");
     return -1;
+}
+
+EDMIDI_EXPORT void edmidi_selectSongNum(struct EDMIDIPlayer *device, int songNumber)
+{
+    if(!device)
+        return;
+
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    play->setSongNum(songNumber);
+}
+
+EDMIDI_EXPORT int edmidi_getSongsCount(struct EDMIDIPlayer *device)
+{
+    if(!device)
+        return 0;
+
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    return play->getSongsCount();
 }
 
 EDMIDI_EXPORT void edmidi_reset(struct EDMIDIPlayer *device)
@@ -399,6 +419,26 @@ EDMIDI_EXPORT void edmidi_setDebugMessageHook(struct EDMIDIPlayer *device, EDMID
     play->setDebugMessageHook(debugMessageHook, userData);
 }
 
+/* Set loop start hook */
+EDMIDI_EXPORT void adl_setLoopStartHook(struct EDMIDIPlayer *device, EDMIDI_LoopPointHook loopStartHook, void *userData)
+{
+    if(!device)
+        return;
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    play->adl_setLoopStartHook(loopStartHook, userData);
+}
+
+/* Set loop end hook */
+EDMIDI_EXPORT void adl_setLoopEndHook(struct EDMIDIPlayer *device, EDMIDI_LoopPointHook loopEndHook, void *userData)
+{
+    if(!device)
+        return;
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    play->adl_setLoopEndHook(loopEndHook, userData);
+}
+
 EDMIDI_EXPORT void edmidi_setLoopEnabled(EDMIDIPlayer *device, int loopEn)
 {
     if(!device)
@@ -415,4 +455,13 @@ EDMIDI_EXPORT void edmidi_setLoopCount(EDMIDIPlayer *device, int loopCount)
     MidiPlayer *play = GET_MIDI_PLAYER(device);
     assert(play);
     play->SetLoopsNumber(loopCount);
+}
+
+EDMIDI_EXPORT void adl_setLoopHooksOnly(EDMIDIPlayer *device, int loopHooksOnly)
+{
+    if(!device)
+        return;
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    play->setLoopHooksOnly(loopHooksOnly);
 }

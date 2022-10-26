@@ -240,7 +240,26 @@ extern EDMIDI_DECLSPEC int edmidi_openFile(struct EDMIDIPlayer *device, const ch
  */
 extern EDMIDI_DECLSPEC int edmidi_openData(struct EDMIDIPlayer *device, const void *mem, unsigned long size);
 
+/**
+ * @brief Switch another song if multi-song file is playing (for example, XMI)
+ *
+ * Note: to set the initial song to load, you should call this function
+ * BBEFORE calling `adl_openFile` or `adl_openData`.  When loaded file has more than
+ * one built-in songs (Usually XMIformat), it will be started from the selected number.
+ * You may call this function to switch another song.
+ *
+ * @param device Instance of the library
+ * @param songNumber Identifier of the track to load (or -1 to mix all tracks as one song)
+ * @return
+ */
+extern EDMIDI_DECLSPEC void edmidi_selectSongNum(struct EDMIDIPlayer *device, int songNumber);
 
+/**
+ * @brief Retrive the number of songs in a currently opened file
+ * @param device Instance of the library
+ * @return Number of songs in the file. If 1 or less, means, the file has only one song inside.
+ */
+extern EDMIDI_DECLSPEC int edmidi_getSongsCount(struct EDMIDIPlayer *device);
 
 /**
  * @brief Resets MIDI player (per-channel setup) into initial state
@@ -485,12 +504,53 @@ extern EDMIDI_DECLSPEC int  edmidi_playFormat(struct EDMIDIPlayer *device, int s
 typedef void (*EDMIDI_DebugMessageHook)(void *userdata, const char *fmt, ...);
 
 /**
+ * @brief Loop start/end point reach hook
+ * @param userdata Pointer to user data (usually, context of someting)
+ */
+typedef void (*EDMIDI_LoopPointHook)(void *userdata);
+
+/**
  * @brief Set debug message hook
+ *
+ * CAUTION: Don't call any libEDMIDI API functions from off this hook directly!
+ * Suggestion: Use boolean variables to mark the fact this hook got been called, and then,
+ * apply your action outside of this hook, for example, in the next after audio output call.
+ *
  * @param device Instance of the library
  * @param debugMessageHook Pointer to the callback function which will be called on every debug message
  * @param userData Pointer to user data which will be passed through the callback.
  */
 extern EDMIDI_DECLSPEC void edmidi_setDebugMessageHook(struct EDMIDIPlayer *device, EDMIDI_DebugMessageHook debugMessageHook, void *userData);
+
+/**
+ * @brief Set the look start point hook
+ *
+ * CAUTION: Don't call any libEDMIDI API functions from off this hook directly!
+ * Suggestion: Use boolean variables to mark the fact this hook got been called, and then,
+ * apply your action outside of this hook, for example, in the next after audio output call.
+ *
+ * @param device Instance of the library
+ * @param loopStartHook Pointer to the callback function which will be called on every loop start point passing
+ * @param userData Pointer to user data which will be passed through the callback.
+ */
+extern EDMIDI_DECLSPEC void edmidi_setLoopStartHook(struct ADL_MIDIPlayer *device, EDMIDI_LoopPointHook loopStartHook, void *userData);
+
+/**
+ * @brief Set the look start point hook
+ *
+ * CAUTION: Don't call any libEDMIDI API functions from off this hook directly!
+ * Suggestion: Use boolean variables to mark the fact this hook got been called, and then,
+ * apply your action outside of this hook, for example, in the next after audio output call.
+ *
+ * If you want to switch the song after calling this hook, suggested to call the function
+ * adl_setLoopHooksOnly(device, 1) to immediately stop the song on reaching the loop point
+ *
+ * @param device Instance of the library
+ * @param loopStartHook Pointer to the callback function which will be called on every loop start point passing
+ * @param userData Pointer to user data which will be passed through the callback.
+ */
+extern EDMIDI_DECLSPEC void edmidi_setLoopEndHook(struct ADL_MIDIPlayer *device, EDMIDI_LoopPointHook loopEndHook, void *userData);
+
 
 
 
@@ -513,6 +573,12 @@ extern EDMIDI_DECLSPEC void edmidi_setLoopEnabled(struct EDMIDIPlayer *device, i
  */
 extern EDMIDI_DECLSPEC void edmidi_setLoopCount(struct EDMIDIPlayer *device, int loopCount);
 
+/**
+ * @brief Make song immediately stop on reaching a loop end point
+ * @param device Instance of the library
+ * @param loopHooksOnly 0 - disabled, 1 - enabled
+ */
+extern EDMIDI_DECLSPEC void edmidi_setLoopHooksOnly(struct EDMIDIPlayer *device, int loopHooksOnly);
 
 #ifdef __cplusplus
 }

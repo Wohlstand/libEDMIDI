@@ -108,6 +108,7 @@ int main(int argc, char **argv)
     int printsCounterPeriod = 1;
     double time_pos;
     uint64_t milliseconds;
+    int songNumLoad = -1;
 
     SDL_memset(posHMS, 0, 25);
     SDL_memset(totalHMS, 0, 25);
@@ -146,6 +147,9 @@ int main(int argc, char **argv)
     }
 
     music_path = argv[1];
+
+    if(argc >= 3)
+        songNumLoad = strtol(argv[2], NULL, 10);
 
     fprintf(stdout, " - Library version %s\n", edmidi_linkedLibraryVersion());
 
@@ -225,6 +229,9 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    if(songNumLoad >= 0)
+        edmidi_selectSongNum(midi_player, songNumLoad);
+
     //Set internal debug messages hook to print all libADLMIDI's internal debug messages
     edmidi_setDebugMessageHook(midi_player, debugPrint, NULL);
 
@@ -257,6 +264,13 @@ int main(int argc, char **argv)
     fprintf(stdout, " - Loop is turned %s\n", loopEnabled ? "ON" : "OFF");
     if(loopStart >= 0.0 && loopEnd >= 0.0)
         fprintf(stdout, " - Has loop points: %s ... %s\n", loopStartHMS, loopEndHMS);
+
+    int songsCount = edmidi_getSongsCount(midi_player);
+    if(songNumLoad >= 0)
+        fprintf(stdout, " - Attempt to load song number: %d / %d\n", songNumLoad, songsCount);
+    else if(songsCount > 0)
+        fprintf(stdout, " - File contains %d song(s)\n", songsCount);
+
     fprintf(stdout, "\n==========================================\n");
     flushout(stdout);
 
