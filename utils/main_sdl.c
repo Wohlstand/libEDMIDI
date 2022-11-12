@@ -118,7 +118,7 @@ int main(int argc, char **argv)
 
     SDL_memset(&spec, 0, sizeof(SDL_AudioSpec));
     spec.freq = 44100;
-    spec.format = AUDIO_F32;
+    spec.format = AUDIO_F32SYS;
     spec.channels = 2;
     spec.samples = 1024;
 
@@ -191,21 +191,25 @@ int main(int argc, char **argv)
         s_audioFormat.sampleOffset = sizeof(uint8_t) * 2;
         break;
     case AUDIO_S16:
+    case AUDIO_S16MSB:
         s_audioFormat.type = EDMIDI_SampleType_S16;
         s_audioFormat.containerSize = sizeof(int16_t);
         s_audioFormat.sampleOffset = sizeof(int16_t) * 2;
         break;
     case AUDIO_U16:
+    case AUDIO_U16MSB:
         s_audioFormat.type = EDMIDI_SampleType_U16;
         s_audioFormat.containerSize = sizeof(uint16_t);
         s_audioFormat.sampleOffset = sizeof(uint16_t) * 2;
         break;
     case AUDIO_S32:
+    case AUDIO_S32MSB:
         s_audioFormat.type = EDMIDI_SampleType_S32;
         s_audioFormat.containerSize = sizeof(int32_t);
         s_audioFormat.sampleOffset = sizeof(int32_t) * 2;
         break;
     case AUDIO_F32:
+    case AUDIO_F32MSB:
         s_audioFormat.type = EDMIDI_SampleType_F32;
         s_audioFormat.containerSize = sizeof(float);
         s_audioFormat.sampleOffset = sizeof(float) * 2;
