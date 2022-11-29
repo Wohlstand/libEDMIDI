@@ -18,6 +18,9 @@ typedef int64_t ssize_t;
 typedef int32_t ssize_t;
 #       endif
 #   endif
+#elif defined(__APPLE__) && defined(__POWERPC__)
+#include <stdint.h>
+typedef int32_t ssize_t;
 #endif
 
 #include <cstdio>
