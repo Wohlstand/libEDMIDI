@@ -91,6 +91,8 @@ else()
     set(ENABLE_FPIC OFF)
 endif()
 
+option(ENABLE_ADDRESS_SANITIZER "Enable the Address Sanitizer GCC feature" OFF)
+
 set(EMIDI_SRC
     src/CEnvelope.cpp
     src/device/emu2413.c
@@ -129,6 +131,10 @@ if(libEDMIDI_STATIC)
     set_legacy_standard(EDMIDI_static)
     set_visibility_hidden(EDMIDI_static)
 
+    if(ENABLE_ADDRESS_SANITIZER)
+        target_compile_options(EDMIDI_static PRIVATE -fsanitize=address)
+    endif()
+
     # -fPIC thing
     if(ENABLE_FPIC)
         set_target_properties(EDMIDI_static PROPERTIES COMPILE_FLAGS "-fPIC")
@@ -156,6 +162,11 @@ if(libEDMIDI_SHARED)
     endif()
     if(OPENBSD_LOCALBASE)
         set_property(TARGET EDMIDI_shared APPEND_STRING PROPERTY LINK_FLAGS " -lc")
+    endif()
+
+    if(ENABLE_ADDRESS_SANITIZER)
+        target_compile_options(EDMIDI_shared PRIVATE -fsanitize=address)
+        target_link_options(EDMIDI_shared PRIVATE -fsanitize=address)
     endif()
 
     set_target_properties(EDMIDI_shared PROPERTIES SOVERSION "1")
@@ -228,6 +239,11 @@ if(WITH_MIDIPLAY)
     endif()
     if(NOT WIN32)
         target_link_libraries(edmidiplay PRIVATE dl m)
+    endif()
+
+    if(ENABLE_ADDRESS_SANITIZER)
+        target_compile_options(edmidiplay PRIVATE -fsanitize=address)
+        target_link_options(edmidiplay PRIVATE -fsanitize=address)
     endif()
 
     if(TARGET EDMIDI_shared)
