@@ -5,4 +5,5 @@ Release
 emidi
 Makefile
 build/
+build-*/
 .DS_Store
