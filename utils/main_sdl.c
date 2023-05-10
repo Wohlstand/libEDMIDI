@@ -120,7 +120,7 @@ int main(int argc, char **argv)
     spec.freq = 44100;
     spec.format = AUDIO_F32SYS;
     spec.channels = 2;
-    spec.samples = 1024;
+    spec.samples = 512;
 
     /* set the callback function */
     spec.callback = my_audio_callback;
@@ -223,7 +223,7 @@ int main(int argc, char **argv)
     }
 
     /* Initialize EmuDeMidi */
-    midi_player = edmidi_initEx(obtained.freq, 16);
+    midi_player = edmidi_initEx(obtained.freq, 2);
     if (!midi_player)
     {
         fprintf(stderr, "Couldn't initialize EDMIDI: %s\n", edmidi_errorString());
