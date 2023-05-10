@@ -514,7 +514,6 @@ int CSMFPlay::RenderFormat(int sampleCount,
                            EDMIDI_UInt8 *out_right,
                            const EDMIDI_AudioFormat *format)
 {
-    int32_t buf[1024];
     size_t doRead = 1024;
     size_t doReadStereo = 512;
     int left = sampleCount;
@@ -537,12 +536,12 @@ int CSMFPlay::RenderFormat(int sampleCount,
     {
         doRead = left > 1024 ? 1024 : left;
         doReadStereo = doRead / 2;
-        generated = m_sequencer->playStream(reinterpret_cast<uint8_t *>(buf), static_cast<size_t>(doReadStereo * 8));
+        generated = m_sequencer->playStream(reinterpret_cast<uint8_t *>(m_outBuf), static_cast<size_t>(doReadStereo * 8));
         assert(generated > 0);
         generatedSamples = generated / 4;
 
         /* Process it */
-        if(SendStereoAudio(sampleCount, generatedSamples, buf, gotten_len, out_left, out_right, format) == -1)
+        if(SendStereoAudio(sampleCount, generatedSamples, m_outBuf, gotten_len, out_left, out_right, format) == -1)
             return 0;
 
         left -= generatedSamples;

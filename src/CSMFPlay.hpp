@@ -27,6 +27,8 @@ class CSMFPlay
     int m_mods;
     int m_rate;
 
+    int32_t m_outBuf[2048];
+
     std::string m_error;
 
     MidiSequencer *m_sequencer;
