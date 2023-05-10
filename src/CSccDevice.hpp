@@ -59,11 +59,11 @@ public:
   RESULT Reset(void);
   RESULT Render(INT32 buf[2]);
 
-  void PercKeyOn(UINT8 note){(void)note;};
-  void PercKeyOff(UINT8 note){(void)note;};
-  void PercSetVolume(UINT8 vol){(void)vol;};
-  void PercSetVelocity(UINT8 note, UINT8 velo){(void)note;(void)velo;};
-  void PercSetProgram(UINT8 note, UINT8 velo){(void)note;(void)velo;};
+  void PercKeyOn(UINT8 note){(void)note;}
+  void PercKeyOff(UINT8 note){(void)note;}
+  void PercSetVolume(UINT8 vol){(void)vol;}
+  void PercSetVelocity(UINT8 note, UINT8 velo){(void)note;(void)velo;}
+  void PercSetProgram(UINT8 note, UINT8 velo){(void)note;(void)velo;}
 
   void SetProgram(UINT ch, UINT8 bank, UINT8 prog);
   void SetVelocity(UINT ch, UINT8 vel);
