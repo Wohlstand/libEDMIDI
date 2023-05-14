@@ -2,6 +2,7 @@
 #include <SDL2/SDL.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <signal.h>
 #include "CSMFPlay.hpp"
 
 /* variable declarations */
@@ -11,6 +12,11 @@ struct MidPlayInstance
 {
     dsa::CSMFPlay *p;
 };
+
+static void stop_playing(int)
+{
+    is_playing = 0;
+}
 
 /*
  audio callback function
@@ -35,6 +41,9 @@ int main(int argc, char *argv[])
     static SDL_AudioSpec            spec; /* the specs of our piece of music */
     MidPlayInstance mp;
     mp.p = new dsa::CSMFPlay(44100, 8);
+
+    signal(SIGINT, &stop_playing);
+    signal(SIGTERM, &stop_playing);
 
     if(argc<=1) {
         printf("%s filename.mid\n", argv[0]);
@@ -92,4 +101,3 @@ int main(int argc, char *argv[])
 
     return 0 ;
 }
-
