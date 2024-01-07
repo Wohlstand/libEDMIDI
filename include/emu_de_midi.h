@@ -1,7 +1,7 @@
 /*
  * Copyright (с) 2004 Mitsutaka Okazaki
  * Copyright (с) 2010-2018 Chris Moeller <kode54@gmail.com>
- * Copyright (с) 2021-2023 Vitaly Novichkov <admin@wohlnet.ru>
+ * Copyright (с) 2021-2024 Vitaly Novichkov <admin@wohlnet.ru>
  *
  * This software is provided 'as-is', without any express or implied warranty.
  * In no event will the authors be held liable for any damages arising from
