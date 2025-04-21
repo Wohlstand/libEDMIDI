@@ -66,7 +66,7 @@ static void rtControllerChange(void *userdata, uint8_t channel, uint8_t type, ui
 {
     CMIDIModule &m = getModule(userdata, channel);
     m.SendControlChange(channel, type, value);
-    if(channel != 9)
+    if(!m.IsDrum(channel))
     {
         CMIDIModule &m2 = getModule2(userdata, channel);
         m2.SendControlChange(channel, type, value);
