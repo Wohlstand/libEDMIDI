@@ -322,7 +322,9 @@ public:
         //! EA-MUS format
         Format_RSXX,
         //! AIL's XMIDI format (act same as MIDI, but with exceptions)
-        Format_XMIDI
+        Format_XMIDI,
+        //! KLM format
+        Format_KLM
     };
 
     /**
@@ -457,6 +459,13 @@ private:
         //! Current level on the loop stack (<0 - out of loop, 0++ - the index in the loop stack)
         int                         stackLevel;
 
+        //! Constructor to initialize member variables
+        LoopState()
+                : caughtStart(false), caughtEnd(false), caughtStackStart(false),
+                caughtStackEnd(false), caughtStackBreak(false), skipStackStart(false),
+                invalidLoop(false), temporaryBroken(false), loopsCount(-1), loopsLeft(0),
+                stackLevel(-1)
+                {}
         /**
          * @brief Reset loop state to initial
          */
@@ -795,12 +804,20 @@ public:
     void   setTempo(double tempo);
 
 private:
+#ifdef BWMIDI_ENABLE_OPL_MUSIC_SUPPORT
     /**
      * @brief Load file as Id-software-Music-File (Wolfenstein)
      * @param fr Context with opened file
      * @return true on successful load
      */
     bool parseIMF(FileAndMemReader &fr);
+
+    /**
+     * @brief Load file as Wacky Wheels KLM file
+     * @param fr Context with opened file
+     * @return true on successful load
+     */
+    bool parseKLM(FileAndMemReader &fr);
 
     /**
      * @brief Load file as EA MUS
@@ -815,6 +832,7 @@ private:
      * @return true on successful load
      */
     bool parseCMF(FileAndMemReader &fr);
+#endif
 
     /**
      * @brief Load file as GMD/MUS files (ScummVM)
