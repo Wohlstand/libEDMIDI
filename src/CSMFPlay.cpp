@@ -95,6 +95,10 @@ CSMFPlay::~CSMFPlay()
 bool CSMFPlay::Load(const void *buf, int size)
 {
     bool ret = m_sequencer->loadMIDI(buf, size);
+    m_trackTitles.clear();
+    const std::vector<MidiSequencer::DataBlock> &tracks = m_sequencer->getTrackTitles();
+    for(std::vector<MidiSequencer::DataBlock>::const_iterator i = tracks.begin(); i != tracks.end(); ++i)
+        m_trackTitles.push_back(std::string(reinterpret_cast<const char*>(m_sequencer->getData(*i)), i->size));
     Reset();
     return ret;
 }
@@ -102,6 +106,10 @@ bool CSMFPlay::Load(const void *buf, int size)
 bool CSMFPlay::Open(const char *filename)
 {
     bool ret = m_sequencer->loadMIDI(filename);
+    m_trackTitles.clear();
+    const std::vector<MidiSequencer::DataBlock> &tracks = m_sequencer->getTrackTitles();
+    for(std::vector<MidiSequencer::DataBlock>::const_iterator i = tracks.begin(); i != tracks.end(); ++i)
+        m_trackTitles.push_back(std::string(reinterpret_cast<const char*>(m_sequencer->getData(*i)), i->size));
     Reset();
     return ret;
 }
@@ -220,19 +228,19 @@ void CSMFPlay::setTriggerHandler(EDMIDI_TriggerHandler handler, void *userData)
     m_sequencer->setTriggerHandler(handler, userData);
 }
 
-const std::string &CSMFPlay::getMusicTitle()
+const char *CSMFPlay::getMusicTitle()
 {
     return m_sequencer->getMusicTitle();
 }
 
-const std::string &CSMFPlay::getMusicCopyright()
+const char *CSMFPlay::getMusicCopyright()
 {
     return m_sequencer->getMusicCopyright();
 }
 
 const std::vector<std::string> &CSMFPlay::getTrackTitles()
 {
-    return m_sequencer->getTrackTitles();
+    return m_trackTitles;
 }
 
 size_t CSMFPlay::getMarkersCount()
@@ -253,7 +261,7 @@ EdMidi_MarkerEntry CSMFPlay::getMarker(size_t index)
     }
 
     const MidiSequencer::MIDI_MarkerEntry &mk = markers[index];
-    marker.label = mk.label.c_str();
+    marker.label = reinterpret_cast<const char*>(m_sequencer->getData(mk.label));
     marker.pos_time = mk.pos_time;
     marker.pos_ticks = (unsigned long)mk.pos_ticks;
 

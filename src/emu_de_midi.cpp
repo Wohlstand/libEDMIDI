@@ -322,7 +322,7 @@ EDMIDI_EXPORT const char *edmidi_metaMusicTitle(struct EDMIDIPlayer *device)
         return "";
     MidiPlayer *play = GET_MIDI_PLAYER(device);
     assert(play);
-    return play->getMusicTitle().c_str();
+    return play->getMusicTitle();
 }
 
 EDMIDI_EXPORT const char *edmidi_metaMusicCopyright(struct EDMIDIPlayer *device)
@@ -331,7 +331,7 @@ EDMIDI_EXPORT const char *edmidi_metaMusicCopyright(struct EDMIDIPlayer *device)
         return "";
     MidiPlayer *play = GET_MIDI_PLAYER(device);
     assert(play);
-    return play->getMusicCopyright().c_str();
+    return play->getMusicCopyright();
 }
 
 EDMIDI_EXPORT size_t edmidi_metaTrackTitleCount(struct EDMIDIPlayer *device)
