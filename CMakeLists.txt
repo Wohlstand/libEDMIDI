@@ -132,6 +132,9 @@ file(GLOB EDMIDI_HEADERS
     ${libEmuDeMIDI_SOURCE_DIR}/include/*.h
     ${libEmuDeMIDI_SOURCE_DIR}/src/*.h
     ${libEmuDeMIDI_SOURCE_DIR}/src/*.hpp
+    ${libEmuDeMIDI_SOURCE_DIR}/src/midiseq/*.h
+    ${libEmuDeMIDI_SOURCE_DIR}/src/midiseq/*.hpp
+    ${libEmuDeMIDI_SOURCE_DIR}/src/midiseq/impl/*.hpp
     ${libEmuDeMIDI_SOURCE_DIR}/src/device/*.h
     ${libEmuDeMIDI_SOURCE_DIR}/src/sequencer/*.hpp
     ${libEmuDeMIDI_SOURCE_DIR}/src/sequencer/*.h
