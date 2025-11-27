@@ -24,7 +24,7 @@ typedef int32_t ssize_t;
 #endif
 
 #include <cstdio>
-#include <limits.h>
+#include <limits.h> /* IWYU pragma: keep */
 #include <assert.h>
 #include <stdint.h>
 #include <algorithm>
@@ -33,6 +33,14 @@ typedef int32_t ssize_t;
 #include "CSccDevice.hpp"
 
 #include "sequencer/midi_sequencer.hpp"
+
+#define DEFAULT_MASK_GM \
+    BW_MidiSequencer::Device_GeneralMidi |\
+    BW_MidiSequencer::Device_GravisUltrasound |\
+    BW_MidiSequencer::Device_SoundMasterII | \
+    BW_MidiSequencer::Device_AWE32 |\
+    BW_MidiSequencer::Device_WaveBlaster |\
+    BW_MidiSequencer::Device_SoundScape
 
 #if defined (_MSC_VER)
 #   if defined (_DEBUG)
@@ -94,6 +102,7 @@ CSMFPlay::~CSMFPlay()
 
 bool CSMFPlay::Load(const void *buf, int size)
 {
+    m_sequencer->setDeviceMask(DEFAULT_MASK_GM);
     bool ret = m_sequencer->loadMIDI(buf, size);
     m_trackTitles.clear();
     const std::vector<MidiSequencer::DataBlock> &tracks = m_sequencer->getTrackTitles();
@@ -105,6 +114,7 @@ bool CSMFPlay::Load(const void *buf, int size)
 
 bool CSMFPlay::Open(const char *filename)
 {
+    m_sequencer->setDeviceMask(DEFAULT_MASK_GM);
     bool ret = m_sequencer->loadMIDI(filename);
     m_trackTitles.clear();
     const std::vector<MidiSequencer::DataBlock> &tracks = m_sequencer->getTrackTitles();
