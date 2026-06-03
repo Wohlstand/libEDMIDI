@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.2...3.10)
+cmake_minimum_required (VERSION 3.2...4.0)
 project(libEmuDeMIDI VERSION 1.0.0 LANGUAGES C CXX)
 
 include(GNUInstallDirs)
