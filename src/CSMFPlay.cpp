@@ -105,8 +105,8 @@ bool CSMFPlay::Load(const void *buf, int size)
     m_sequencer->setDeviceMask(DEFAULT_MASK_GM);
     bool ret = m_sequencer->loadMIDI(buf, size);
     m_trackTitles.clear();
-    const std::vector<MidiSequencer::DataBlock> &tracks = m_sequencer->getTrackTitles();
-    for(std::vector<MidiSequencer::DataBlock>::const_iterator i = tracks.begin(); i != tracks.end(); ++i)
+    const MidiSequencer::MusTrackTitlesList &tracks = m_sequencer->getTrackTitles();
+    for(const MidiSequencer::DataBlock *i = tracks.begin(); i != tracks.end(); ++i)
         m_trackTitles.push_back(std::string(reinterpret_cast<const char*>(m_sequencer->getData(*i)), i->size));
     Reset();
     return ret;
@@ -117,8 +117,8 @@ bool CSMFPlay::Open(const char *filename)
     m_sequencer->setDeviceMask(DEFAULT_MASK_GM);
     bool ret = m_sequencer->loadMIDI(filename);
     m_trackTitles.clear();
-    const std::vector<MidiSequencer::DataBlock> &tracks = m_sequencer->getTrackTitles();
-    for(std::vector<MidiSequencer::DataBlock>::const_iterator i = tracks.begin(); i != tracks.end(); ++i)
+    const MidiSequencer::MusTrackTitlesList &tracks = m_sequencer->getTrackTitles();
+    for(const MidiSequencer::DataBlock *i = tracks.begin(); i != tracks.end(); ++i)
         m_trackTitles.push_back(std::string(reinterpret_cast<const char*>(m_sequencer->getData(*i)), i->size));
     Reset();
     return ret;
@@ -255,14 +255,14 @@ const std::vector<std::string> &CSMFPlay::getTrackTitles()
 
 size_t CSMFPlay::getMarkersCount()
 {
-    return m_sequencer->getMarkers().size();
+    return m_sequencer->getMarkers().size;
 }
 
 EdMidi_MarkerEntry CSMFPlay::getMarker(size_t index)
 {
     struct EdMidi_MarkerEntry marker;
-    const std::vector<MidiSequencer::MIDI_MarkerEntry> &markers = m_sequencer->getMarkers();
-    if(index >= markers.size())
+    const MidiSequencer::MusMarkersList &markers = m_sequencer->getMarkers();
+    if(index >= markers.size)
     {
         marker.label = "INVALID";
         marker.pos_time = 0.0;
