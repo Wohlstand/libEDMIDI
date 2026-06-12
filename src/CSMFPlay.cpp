@@ -198,6 +198,11 @@ bool CSMFPlay::SeqEof()
     return m_sequencer->positionAtEnd();
 }
 
+void CSMFPlay::SetModeEMIDI(bool enabled)
+{
+    m_sequencer->setModeEMIDI(enabled);
+}
+
 void CSMFPlay::setSongNum(int track)
 {
     m_sequencer->setSongNum(track);

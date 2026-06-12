@@ -69,6 +69,8 @@ public:
     bool GetLoop();
     bool SeqEof();
 
+    void SetModeEMIDI(bool enabled);
+
     void setSongNum(int track);
     int getSongsCount();
 

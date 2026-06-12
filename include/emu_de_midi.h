@@ -581,6 +581,15 @@ extern EDMIDI_DECLSPEC void edmidi_setLoopCount(struct EDMIDIPlayer *device, int
  */
 extern EDMIDI_DECLSPEC void edmidi_setLoopHooksOnly(struct EDMIDIPlayer *device, int loopHooksOnly);
 
+/**
+ * @brief Enable or disable the handling of events according Apogee Sound System's EMIDI standard for MIDI files
+ * @param device Instance of the library
+ * @param emidiEn 0 - disabled, 1 - enabled
+ *
+ * Note: The mode must be set before loading the MIDI file, otherwise this option will take no effect
+ */
+extern EDMIDI_DECLSPEC void edmidi_setModeEMIDI(struct EDMIDIPlayer *device, int emidiEn);
+
 #ifdef __cplusplus
 }
 #endif

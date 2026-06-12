@@ -465,3 +465,12 @@ EDMIDI_EXPORT void adl_setLoopHooksOnly(EDMIDIPlayer *device, int loopHooksOnly)
     assert(play);
     play->setLoopHooksOnly(loopHooksOnly);
 }
+
+EDMIDI_EXPORT void edmidi_setModeEMIDI(EDMIDIPlayer *device, int emidiEn)
+{
+    if(!device)
+        return;
+    MidiPlayer *play = GET_MIDI_PLAYER(device);
+    assert(play);
+    play->SetModeEMIDI(emidiEn != 0);
+}
